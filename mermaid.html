@@ -1,0 +1,56 @@
+<html>
+
+<head>
+    <title>MermaidJS Diagram</title>
+    <meta charset="UTF-8">
+    <script src="./data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
+</head>
+
+<body>
+    <a href="#7347941">Мнацаканова Софья</a>
+    
+    flowchart LR
+    A:::someclass --> B
+    classDef someclass fill:#f96
+
+    <div id="diagram"></div>
+    <script>
+        function jsonToMermaid(data) {
+            let mermaidStr = 'graph LR;\n';
+            data.forEach(item => {
+                const parent = item.parent;
+                const id = item.id;
+                const name = item.name;
+
+                if (parent && id) {
+                    mermaidStr += `${parent} --> ${id}[<span id='${id}'></span>${name}]\n`;
+                }
+                else {
+                    mermaidStr += `${id}[${name}]\n`
+                }
+            });
+            return mermaidStr;
+        }
+
+        let mermaidStr = jsonToMermaid(d);
+        // console.log(mermaidStr);
+
+        // Initializing mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+        });
+
+        var element = document.getElementById("diagram");
+        var insertSvg = function (svgCode, bindFunctions) {
+            element.innerHTML = svgCode.svg;
+            bindFunctions?.(element);
+        };
+
+        var graph = mermaid.render('some', mermaidStr).then(insertSvg);
+        // var graph = mermaid.render('some', mermaidStr, insertSvg);
+
+    </script>
+</body>
+
+</html>
