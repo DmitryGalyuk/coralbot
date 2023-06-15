@@ -3,14 +3,8 @@ import Member from './member.js';
 export default async function parseReport(file) {
 
     let [summary, data] = await parseExcel(file);
-
-    let memberlist = await _rawexcelToMembers(data);
+    let memberlist = _rawexcelToMembers(data);
     _populate_children(memberlist);
-    // Assuming calculate_group_total() is a function in each member
-    for (let m of memberlist) {
-        m.calculate_group_total();
-    }
-
     return [summary, memberlist];
 }
 

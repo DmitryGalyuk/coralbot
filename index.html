@@ -3,19 +3,22 @@
 <head>
     <title>MermaidJS Diagram</title>
     <meta charset="UTF-8">
-    <!-- <script src="./data.js"></script> -->
+    <link rel="stylesheet" href="css/diagram.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="js/parser.js" type="module"></script>
     <script type="module">
         import parseReport from './js/parser.js'
+        import Renderer from './js/render.js' 
+
         async function parseUploaded(){
             const file = document.querySelector('#excelFile').files[0];
             let [summary, data] = await parseReport(file);
             
             document.getElementById("output").innerText = summary;
 
-            let mermaidStr = jsonToMermaid(data);
+            let renderer = new Renderer(data);
+            let mermaidStr = renderer.render();
             // console.log(mermaidStr);
 
             // Initializing mermaid
@@ -55,14 +58,9 @@
 </head>
 
 <body>
-    <a href="#7347941">Мнацаканова Софья</a>
-    
-    flowchart LR
-    A:::someclass --> B
-    classDef someclass fill:#f96
-    <input type="file" id="excelFile" />
+     Выбрать файл отчёта <input type="file" id="excelFile" />
 
-    <button id="btnParse">Parse File</button>
+    <button id="btnParse">Загрузить</button>
 
     <pre id="output"></pre>
 
