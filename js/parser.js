@@ -1,34 +1,65 @@
 import Member from './member.js';
 
-export default async function parseReport(file) {
+export default class ReportParses {
+    constructor(file) {
+        this._rawData = [];
+        this.summary = "";
+        this._memberList = undefined;
+        this._root = undefined;
 
-    let [summary, data] = await parseExcel(file);
-    let memberlist = _rawexcelToMembers(data);
-    _populate_children(memberlist);
-    return [summary, memberlist];
-}
+        this.columnHeaders = [
+            "rownum",
+            "level",
+            "id",
+            "name",
+            "title",
+            "personalvolume",
+            "nso",
+            "maxzr",
+            "monthNoVolume",
+            "status",
+        ]
+        this._file = file;
 
-const columnHeaders = [
-    "rownum",
-    "level",
-    "id",
-    "name",
-    "title",
-    "personalvolume",
-    "nso",
-    "maxzr",
-    "monthNoVolume",
-    "status",
-]
+    }
 
-async function parseExcel(file) {
-    if (file) {
+    rawData() {
+        return this._rawData;
+    }
+
+    memberFlatList() {
+        if (this._memberList) return this._memberList;
+        this._memberList = [];
+        let that = this;
+        
+        function traverse(node) {
+            that._memberList.push(node);
+            
+            if (node.children) {
+                for (let child of node.children) {
+                    traverse(child);
+                }
+            }
+        }
+        
+        traverse(this.memberTree());
+        return this._memberList;
+    }
+
+    memberTree() {
+        if (this._root) return root;
+
+        let flat = this._rawexcelToMembers(this._rawData);
+        this._root = this._populate_children(flat);
+        return this._root;
+    }
+
+    async parseExcel() {
+
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(await file.arrayBuffer());
+        await workbook.xlsx.load(await this._file.arrayBuffer());
 
         const worksheet = workbook.worksheets[0];
-        const data = [];
-        let summary = "";
 
         worksheet.unMergeCells('A7:Z7');
 
@@ -44,7 +75,7 @@ async function parseExcel(file) {
                     isInBlankRow = true;
                     return;
                 }
-                summary += row.values[1] + '\n';
+                this.summary += row.values[1] + '\n';
             } else if (isInBlankRow) {
                 // Switch to data mode when we find a non-empty row after blank rows
                 if (worksheet.getCell('A' + rowNumber).value) {
@@ -59,48 +90,46 @@ async function parseExcel(file) {
                 }
                 const rowData = {};
                 row.values.slice(1, row.values.length).forEach((col, colIndex) => {
-                    rowData[columnHeaders[colIndex]] = col && col.toString().trim();
+                    rowData[this.columnHeaders[colIndex]] = col && col.toString().trim();
                 });
-                data.push(rowData);
+                this._rawData.push(rowData);
             }
         });
 
-
-
-        return [summary, data];
     }
-}
 
-function _rawexcelToMembers(df) {
-    let parent_child = {};
-    let flat_list = [];
+    _rawexcelToMembers(df) {
+        let parent_child = {};
+        let flat_list = [];
 
-    for (let row of df) {
-        let m = new Member(row); // Assuming Member is a predefined class
-        let member_id = m.id;
-        let level = parseInt(m.level.split('.')[1]); // Get the number after the dot in 'level'
+        for (let row of df) {
+            let m = new Member(row); // Assuming Member is a predefined class
+            if (!m.id) continue;
+            let level = parseInt(m.level.split('.')[1]); // Get the number after the dot in 'level'
 
-        if (level !== 0) {
-            let parent_id = parent_child[level - 1].id;
-            m.parent = parent_id;
+            if (level !== 0) {
+                let parent_id = parent_child[level - 1].id;
+                m.parent = parent_id;
+            }
+
+            parent_child[level] = m;
+            flat_list.push(m);
         }
 
-        parent_child[level] = m;
-        flat_list.push(m);
+        return flat_list;
     }
 
-    return flat_list;
-}
-
-function _populate_children(members) {
-    let id_member = {};
-    for (let m of members) {
-        id_member[m.id] = m;
-    }
-
-    for (let m of members) {
-        if (m.parent) {
-            id_member[m.parent].children.push(m);
+    _populate_children(members) {
+        let id_member = {};
+        for (let m of members) {
+            id_member[m.id] = m;
         }
+
+        for (let m of members) {
+            if (m.parent) {
+                id_member[m.parent].children.push(m);
+            }
+        }
+        return members[0];
     }
 }

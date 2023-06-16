@@ -8,7 +8,7 @@ export default class Member {
         this.level = row["level"].trim();
         this.id = row["id"];
         this.key = this.id;
-        this.name = row["name"];
+        this.text = this.name = row["name"];
         this.title = row["title"];
         this.titleNoPrefix = this._removePrefixes(this.title, ['н', 'о', '1']);
         this.isNew = this._titleHasPrefix(['н']);
