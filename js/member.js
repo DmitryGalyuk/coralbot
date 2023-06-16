@@ -10,6 +10,7 @@ export default class Member {
         this.key = this.id;
         this.name = row["name"];
         this.title = row["title"];
+        this.titleNoPrefix = this._removePrefixes(this.title, ['н', 'о', '1']);
         this.isNew = this._titleHasPrefix(['н']);
         this.isOpen = this._titleHasPrefix(['о']);
         this.isHighest = this._titleHasPrefix(['1']);
@@ -42,6 +43,15 @@ export default class Member {
       
         // If no matching prefix was found, return false.
         return false;
+    }
+
+    _removePrefixes(str, prefixes) {
+        for (const p of prefixes) {
+            if( str.startsWith(p)) {
+                return str.replace(p, "");
+            }
+        }
+        return str;
     }
 
     get grouptotal() {

@@ -1,5 +1,4 @@
 <html>
-
 <head>
     <title>MermaidJS Diagram</title>
     <meta charset="UTF-8">
@@ -7,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="js/parser.js" type="module"></script>
+    <script src="https://svglibjs.galyuk.com/svglib.js"></script>
     <script type="module">
         import parseReport from './js/parser.js'
         import Renderer from './js/render.js' 
@@ -24,6 +24,15 @@
             // Initializing mermaid
             mermaid.initialize({
                 startOnLoad: true,
+                htmlLabels: true,
+                // securityLevel: "loose",
+                maxTextSize: 9000000,
+                flowchart:{
+                    useMaxWidth: 0,
+                    padding: 10,
+                    htmlLabels: true,
+                    // defaultRenderer: 'dagre-d3'
+                } 
             });
 
             var element = document.getElementById("diagram");
@@ -36,23 +45,6 @@
         // var graph = mermaid.render('some', mermaidStr, insertSvg);
         }
 
-        function jsonToMermaid(data) {
-            let mermaidStr = 'graph LR;\n';
-            data.forEach(item => {
-                const parent = item.parent;
-                const id = item.id;
-                const name = item.name;
-
-                if (parent && id) {
-                    mermaidStr += `${parent} --> ${id}[<span id='${id}'></span>${name}]\n`;
-                }
-                else {
-                    mermaidStr += `${id}[${name}]\n`
-                }
-            });
-            return mermaidStr;
-        }
-
         document.getElementById("btnParse").addEventListener('click', parseUploaded);
     </script>
 </head>
@@ -61,7 +53,6 @@
      Выбрать файл отчёта <input type="file" id="excelFile" />
 
     <button id="btnParse">Загрузить</button>
-
     <pre id="output"></pre>
 
     <div id="diagram"></div>
