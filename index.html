@@ -6,21 +6,24 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="js/parser.js" type="module"></script>
+    <script src="js/member.js" type="module"></script>
+    <script src="js/render.js" type="module"></script>
+
     <script type="module">
         import ReportParses from './js/parser.js'
         import Renderer from './js/render.js' 
+        import Member from './js/member.js'
 
         async function parseUploaded(){
             const file = document.querySelector('#excelFile').files[0];
             let parser = new ReportParses(file);
-            await parser.parseExcel();
+            let data = Member.flattenTree(await parser.parseExcel());
             let summary = parser.summary;
-            let data = parser.memberFlatList();
             
             document.getElementById("output").innerText = summary;
 
             let renderer = new Renderer(data);
-            let mermaidStr = renderer.render();
+            let mermaidStr = renderer.renderMermaid();
             // console.log(mermaidStr);
 
             // Initializing mermaid
