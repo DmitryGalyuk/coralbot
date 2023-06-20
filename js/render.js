@@ -35,7 +35,6 @@ export default class Renderer {
         "МЗ": "Золотой Мастер",
         "МС": "Серебрянный Мастер",
         "МП": "Платиновый Мастер",
-        "МЗ": "Звёздный Мастер",
     }
 
     renderMermaid(templateNode) {
@@ -81,9 +80,9 @@ export default class Renderer {
     renderBreadcrumbs(targetElement, currentNode) {
         let n = currentNode;
         let breadcrumbs = [];
-        while(n.parent) {
+        while(n) {
             breadcrumbs.push(`<a class="breadcrumb" href="#${n.id}">${n.name}</a>`);
-            n= n.parent;
+            n = n.parent;
         }
         let result = breadcrumbs.reverse().join(" -- ");
         targetElement.innerHTML = result;

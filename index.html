@@ -1,4 +1,5 @@
 <html>
+
 <head>
     <title>MermaidJS Diagram</title>
     <meta charset="UTF-8">
@@ -11,41 +12,48 @@
 
     <script type="module">
         import ReportParses from './js/parser.js'
-        import Renderer from './js/render.js' 
+        import Renderer from './js/render.js'
         import Member from './js/member.js'
 
         let root = undefined;
 
-        async function parseUploaded(){
+        async function parseUploaded() {
             const file = document.querySelector('#excelFile').files[0];
             let parser = new ReportParses(file);
             root = await parser.parseExcel();
 
-            renderData();
+            renderData(root);
         }
 
-        function renderData() {
-            let data = Member.flattenTree(root);
+        function renderData(node) {
+            let data = Member.flattenTree(node);
 
             let renderer = new Renderer(data);
 
             let diagElement = document.getElementById("diagram");
             let mermaidStr = renderer.renderMermaid(diagElement);
 
-            let hash = window.location.hash.substring(1);
-            if(hash){
-                hash = parseInt(hash);
-                let node = data.find(m => m.id == hash)
-                renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
-            }
+            renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
+
         };
 
         document.getElementById("btnParse").addEventListener('click', parseUploaded);
+
+        // Add a click event listener to the document
+        document.addEventListener('click', function (event) {
+            // Check if the clicked element is a link with a hash
+            if (event.target.tagName === 'A' && event.target.hash) {
+                event.preventDefault(); // Prevent the default action
+                let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
+                let node = root.findChild(hash);
+                renderData(node);
+            }
+        });
     </script>
 </head>
 
 <body>
-     Выбрать файл отчёта <input type="file" id="excelFile" />
+    Выбрать файл отчёта <input type="file" id="excelFile" />
 
     <button id="btnParse">Загрузить</button>
     <pre id="output"></pre>

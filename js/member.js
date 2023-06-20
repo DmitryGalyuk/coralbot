@@ -63,6 +63,16 @@ export default class Member {
         return this.grouptotal;
     }
 
+    findChild(id) {
+        if (this.id == id) return this;
+
+        for (let c of this.children) {
+            let foundChild = c.findChild(id);
+            if (foundChild) return foundChild;
+          }
+        return null;
+    }
+
     // rest of the methods here...
 
     static removeZeroMembers(root) {
