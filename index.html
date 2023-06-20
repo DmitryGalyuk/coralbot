@@ -14,41 +14,31 @@
         import Renderer from './js/render.js' 
         import Member from './js/member.js'
 
+        let root = undefined;
+
         async function parseUploaded(){
             const file = document.querySelector('#excelFile').files[0];
             let parser = new ReportParses(file);
-            let data = Member.flattenTree(await parser.parseExcel());
-            let summary = parser.summary;
-            
-            document.getElementById("output").innerText = summary;
+            root = await parser.parseExcel();
+
+            renderData();
+        }
+
+        function renderData() {
+            let data = Member.flattenTree(root);
 
             let renderer = new Renderer(data);
-            let mermaidStr = renderer.renderMermaid();
-            // console.log(mermaidStr);
 
-            // Initializing mermaid
-            mermaid.initialize({
-                startOnLoad: true,
-                htmlLabels: true,
-                // securityLevel: "loose",
-                maxTextSize: 9000000,
-                flowchart:{
-                    useMaxWidth: 0,
-                    padding: 10,
-                    htmlLabels: true,
-                    // defaultRenderer: 'dagre-d3'
-                } 
-            });
+            let diagElement = document.getElementById("diagram");
+            let mermaidStr = renderer.renderMermaid(diagElement);
 
-            var element = document.getElementById("diagram");
-            var insertSvg = function (svgCode, bindFunctions) {
-                element.innerHTML = svgCode.svg;
-                bindFunctions?.(element);
+            let hash = window.location.hash.substring(1);
+            if(hash){
+                hash = parseInt(hash);
+                let node = data.find(m => m.id == hash)
+                renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
+            }
         };
-
-        var graph = mermaid.render('some', mermaidStr).then(insertSvg);
-        // var graph = mermaid.render('some', mermaidStr, insertSvg);
-        }
 
         document.getElementById("btnParse").addEventListener('click', parseUploaded);
     </script>
@@ -59,6 +49,9 @@
 
     <button id="btnParse">Загрузить</button>
     <pre id="output"></pre>
+
+    <div id="breadcrumbs"></div>
+    <br>
 
     <div id="diagram"></div>
 

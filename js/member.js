@@ -116,8 +116,10 @@ export default class Member {
         }
 
         for (let member of members) {
-            if (member.parent) {
-                idToMemberMap.get(member.parent).children.push(member);
+            if (member.parentId) {
+                let parent = idToMemberMap.get(member.parentId);
+                member.parent = parent;
+                parent.children.push(member);
             }
         }
 
@@ -137,7 +139,7 @@ export default class Member {
 
             if (level !== 0) {
                 let parentMember = levelToLastMemberMap.get(level - 1);
-                member.parent = member.parentId = parentMember.id;
+                member.parentId = parentMember.id;
             }
 
             levelToLastMemberMap.set(level, member);
