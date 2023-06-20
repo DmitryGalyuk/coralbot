@@ -6,18 +6,20 @@ export default class ReportParses {
         this.summary = "";
         this._memberList = undefined;
 
-        this.columnHeaders = [
-            "rownum",
-            "level",
-            "id",
-            "name",
-            "title",
-            "personalvolume",
-            "nso",
-            "maxzr",
-            "monthNoVolume",
-            "status",
-        ]
+        this.column2field = {
+            '': 'name',
+            '№': 'rownum',
+            'Уровень': 'level',
+            'Член клуба': 'id',
+            'Ранг/нД': 'rawtitle',
+            'P': 'unpayedOrders',
+            'ЛО': 'personalvolume',
+            'ЛГО': 'lgo',
+            'НСО': 'nso',
+            'Max. 3Р': 'maxzr',
+            '#': 'monthNoVolume',
+            'S': 'status'
+          };
         this._file = file;
 
     }
@@ -26,44 +28,52 @@ export default class ReportParses {
     async parseExcel() {
 
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(await this._file.arrayBuffer());
+        await workbook.xlsx.load(this._file);
 
         const worksheet = workbook.worksheets[0];
+        let row = worksheet.getRow(1);
+        let rownum = 1;
 
-        worksheet.unMergeCells('A7:Z7');
+        // Skip the summary   
+        while (row.getCell(1).value) {
+            rownum++;
+            row = worksheet.getRow(rownum);
+        }
 
-        let isInHeader = true;
-        let isInBlankRow = false;
-        let isInData = false;
+        // skip the empty lines and first pseudo header row
+        while (!row.getCell(1).value) {
+            rownum++;
+            row = worksheet.getRow(rownum);
+        }
 
-        worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-            if (isInHeader) {
-                worksheet.unMergeCells('A' + rowNumber + ':Z' + rowNumber);
-                if (!worksheet.getCell('A' + rowNumber).value) {
-                    isInHeader = false;
-                    isInBlankRow = true;
-                    return;
-                }
-                this.summary += row.values[1] + '\n';
-            } else if (isInBlankRow) {
-                // Switch to data mode when we find a non-empty row after blank rows
-                if (worksheet.getCell('A' + rowNumber).value) {
-                    isInBlankRow = false;
-                    isInData = true;
-                }
-            } else if (isInData) {
-                // table parsed, prevent reading the footer
-                if (!worksheet.getCell('A' + rowNumber).value) {
-                    isInData = false;
-                    return;
-                }
-                const rowData = {};
-                row.values.slice(1, row.values.length).forEach((col, colIndex) => {
-                    rowData[this.columnHeaders[colIndex]] = col && col.toString().trim();
-                });
-                this._rawData.push(rowData);
-            }
+        // Unmerge cells in the header row
+        const headerRowIndex = rownum;
+        worksheet.unMergeCells(`A${headerRowIndex}:Z${headerRowIndex}`);
+
+        // Process the next row as a header row
+       const headers = {};
+        row = worksheet.getRow(rownum);
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            headers[colNumber] = this.column2field[cell.value ?? ""];
         });
+
+        // Process the remaining rows as data
+        rownum++;
+        let dataRow = worksheet.getRow(rownum);
+        while (dataRow.hasValues) {
+            const memberData = {};
+            dataRow.eachCell((cell, colNumber) => {
+                const header = headers[colNumber];
+                if (header !== null) {
+                    memberData[header] = cell.value;
+                }
+            });
+            this._rawData.push(memberData);
+
+            rownum++;
+            dataRow = worksheet.getRow(rownum);
+        }
+
 
         return Member.fromRawData(this._rawData);
 

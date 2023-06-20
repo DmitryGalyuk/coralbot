@@ -50,7 +50,7 @@ export default class Renderer {
 
         let parentLink = (m.parent && m.id) ? `${m.parent} --> ` : "";
 
-        let card = `${parentLink}${m.id}["${m.name}<br>${m.grouptotal} / ${m.personalvolume}"]\n`
+        let card = `${parentLink}${m.id}["${m.name}<br>${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`
 
         return card;
     }

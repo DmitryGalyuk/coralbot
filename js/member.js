@@ -11,14 +11,15 @@ export default class Member {
         this.key = this.id;
         this.text = this.name = row['name'];
         this.title = row['title'];
-        this.titleNoPrefix = this._removePrefixes(this.title, ['н', 'о', '1']);
+        this.rawtitle = row['rawtitle'];
+        this.title = this._removePrefixes(this.rawtitle, ['н', 'о', '1']);
         this.isNew = this._titleHasPrefix(['н']);
         this.isOpen = this._titleHasPrefix(['о']);
         this.isHighest = this._titleHasPrefix(['1']);
-        this.personalvolume = parseFloat(row['personalvolume']?.trim() || 0);
+        this.personalvolume = typeof row['personalvolume'] === "number" ? row['personalvolume'] : 0;
         this.nso = row['nso'];
         this.maxzr = row['maxzr'];
-        this.monthNoVolume = parseFloat(row['monthNoVolume']?.trim() || 0);
+        this.monthNoVolume = typeof row['monthNoVolume'] === "number" ? row['monthNoVolume'] : 0;
         this.status = row['status'];
 
         if (this.maxzr?.length > 2) {
@@ -30,12 +31,12 @@ export default class Member {
     }
 
     _titleHasPrefix(prefixes) {
-        if (!this.title) {
+        if (!this.rawtitle) {
             return false;
         }
 
         for (let prefix of prefixes) {
-            if (this.title.trim().toLowerCase().startsWith(prefix)) {
+            if (this.rawtitle.trim().toLowerCase().startsWith(prefix)) {
                 return true;
             }
         }
