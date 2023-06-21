@@ -27,6 +27,7 @@
 
         function renderData(node) {
             let data = Member.flattenTree(node);
+            data[0].parent = data[0].parentId = undefined;
 
             let renderer = new Renderer(data);
 

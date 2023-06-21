@@ -45,15 +45,20 @@ export default class Renderer {
 
         let mermaidStr = 'graph TD;\n';
 
-        this.data.forEach(item => {
-            mermaidStr += this.renderMermaidCard(item, templateNode);
-        });
+        // this.data.forEach(item => {
+        //     mermaidStr += this.renderMermaidCard(item);
+        // });
+
+        for( let i=0; i< this.data.length; i++){
+            let width = Math.ceil(this.data[i].grouptotal*100/this.data[0].grouptotal);
+            mermaidStr += this.renderMermaidCard(this.data[i], i, width);
+        }
         mermaid.render('some', mermaidStr).then(insertSvg)
 
         return mermaidStr;
     }
 
-    renderMermaidCard(m) {
+    renderMermaidCard(m, cardNum, linkWidth) {
         let titles = [];
 
         if (m.isNew) {
@@ -72,7 +77,10 @@ export default class Renderer {
         let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
         let nameLink = `<a href="#${m.id}">${m.name}</a>`;
 
-        let card = `${parentLink}${m.id}["${title}<b>${nameLink}</b><br>${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`
+        let card = `${parentLink}${m.id}["${title}<b>${nameLink}</b><br>${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`;
+        if(cardNum>0)  {
+            card += `linkStyle ${cardNum-1} stroke-width:${linkWidth>0?linkWidth:1}px;\n`;
+        }
 
         return card;
     }
