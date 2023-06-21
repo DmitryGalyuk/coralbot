@@ -19,7 +19,7 @@
 
         async function parseUploaded() {
             const file = document.querySelector('#excelFile').files[0];
-            let parser = new ReportParses(file);
+            let parser = new ReportParses(file, "ru");
             root = await parser.parseExcel();
 
             renderData(root);
@@ -27,7 +27,6 @@
 
         function renderData(node) {
             let data = Member.flattenTree(node);
-            data[0].parent = data[0].parentId = undefined;
 
             let renderer = new Renderer(data);
 

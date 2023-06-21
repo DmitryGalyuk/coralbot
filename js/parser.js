@@ -1,10 +1,11 @@
 import Member from './member.js';
 
 export default class ReportParses {
-    constructor(file) {
+    constructor(file, language) {
         this._rawData = [];
         this.summary = "";
         this._memberList = undefined;
+        this.language = language;
 
         this.column2field = {
             '': 'name',
@@ -75,7 +76,7 @@ export default class ReportParses {
         }
 
 
-        return Member.fromRawData(this._rawData);
+        return Member.fromRawData(this._rawData, this.language);
 
     }
 
