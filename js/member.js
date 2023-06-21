@@ -1,26 +1,30 @@
+import titleModifiersJson from './titlemodifiers.js';
+import titlesJson from './titles.js';
+
 export default class Member {
     constructor() {
         this.parent = "";
         this.children = [];
+        this.grouptotal = undefined;
+
     }
 
-    parse(row) {
+    parse(row, language) {
+        this.language = language;
         this.rownum = row['rownum'];
         this.level = row['level'].trim();
         this.id = row['id'];
         this.key = this.id;
         this.text = this.name = row['name'];
-        this.title = row['title'];
-        this.rawtitle = row['rawtitle'];
-        this.title = this._removePrefixes(this.rawtitle, ['н', 'о', '1']);
-        this.isNew = this._titleHasPrefix(['н']);
-        this.isOpen = this._titleHasPrefix(['о']);
-        this.isHighest = this._titleHasPrefix(['1']);
+        this.rawTitle = row['rawtitle'];
         this.personalvolume = typeof row['personalvolume'] === "number" ? row['personalvolume'] : 0;
         this.nso = row['nso'];
         this.maxzr = row['maxzr'];
         this.monthNoVolume = typeof row['monthNoVolume'] === "number" ? row['monthNoVolume'] : 0;
         this.status = row['status'];
+
+        this.parseRawTitle("ru");
+        this.title = this.fullTitle();
 
         if (this.maxzr?.length > 2) {
             [this.maxtitle, this.titlenotclosedmonths] = this.maxzr.split('/');
@@ -30,13 +34,66 @@ export default class Member {
         }
     }
 
+    static order = titlesJson;
+    static languageModifiers = titleModifiersJson;
+
+    fullTitle() {
+        let titleParts = [];
+
+        for (let modifierKey in Member.languageModifiers) {
+            if (this[modifierKey]) {
+                titleParts.push(Member.languageModifiers[modifierKey].long[this.language]);
+            }
+        }
+
+        titleParts.push(this.title);
+
+        return titleParts.join(' ');
+    }
+
+    parseRawTitle() {
+        if (this.rawTitle.trim() == "") return "";
+
+        // Sort the order array based on the length of the short title (longest first),
+        // and then alphabetically if they have the same length
+        const sortedOrder = Member.order.sort((a, b) => {
+            const diff = b.short[this.language].length - a.short[this.language].length;
+            if (diff === 0) return b.short[this.language] < a.short[this.language] ? -1 : 1;
+            return diff;
+        });
+
+        // Identify the title
+        for (let titleObj of sortedOrder) {
+            if (this.rawTitle.endsWith(titleObj.short[this.language])) {
+                this.titleObject = titleObj;
+                this.title = this.titleObject.long[this.language];
+                break;
+            }
+        }
+
+        // Extract the modifiers
+        let modifierStr = this.rawTitle.replace(this.titleObject.short[this.language], '');
+
+        // Check for any modifiers
+        for (let modifierKey in Member.languageModifiers) {
+            const modifier = Member.languageModifiers[modifierKey];
+            if (modifierStr.includes(modifier.short[this.language])) {
+                this[modifierKey] = true;
+            }
+        }
+    }
+
+
+
+
+
     _titleHasPrefix(prefixes) {
-        if (!this.rawtitle) {
+        if (!this.rawTitle) {
             return false;
         }
 
         for (let prefix of prefixes) {
-            if (this.rawtitle.trim().toLowerCase().startsWith(prefix)) {
+            if (this.rawTitle.trim().toLowerCase().startsWith(prefix)) {
                 return true;
             }
         }
@@ -46,22 +103,62 @@ export default class Member {
 
     _removePrefixes(str, prefixes) {
         for (const prefix of prefixes) {
-            if( str.startsWith(prefix)) {
+            if (str.startsWith(prefix)) {
                 return str.replace(prefix, '');
             }
         }
         return str;
     }
 
-    calculate_group_total() {
-        this.grouptotal = this.personalvolume;
+    calculate_overallstructure_total() {
+        this.overallstructuretotal = this.personalvolume;
 
         for (let child of this.children) {
-            this.grouptotal += child.calculate_group_total();
+            this.overallstructuretotal += child.calculate_overallstructure_total();
+        }
+
+        return this.overallstructuretotal;
+    }
+
+    static directorOrder = (Member.order.find(o => o.name == "Director") || {}).order;
+
+    calculate_group_totals() {
+        // Initialize the grouptotal with the member's personalvolume
+        this.grouptotal = this.personalvolume || 0;
+
+        for (let child of (this.children || [])) {
+            // If the child is not a director, add its grouptotal to the total
+            if (!child.titleObject || child.titleObject.order < Member.directorOrder) {
+                this.grouptotal += child.calculate_group_totals();
+            }
         }
 
         return this.grouptotal;
     }
+
+    static update_grouptotals_tree(root) {
+        let stack = [root];
+
+        function traverse(node) {
+            for (let child of node.children) {
+                if (child.titleObject && child.titleObject.order >= Member.directorOrder) {
+                    // director found, push to stack and traverse deeper. 
+                    // Higher director in stack -- no directors under them
+                    stack.push(child);
+                }
+                traverse(child);
+            }
+        }
+
+        traverse(root);
+        let director = stack.pop();
+        while (director) {
+            director.calculate_group_totals();
+            director = stack.pop();
+        }
+
+    }
+
 
     findChild(id) {
         if (this.id == id) return this;
@@ -69,7 +166,7 @@ export default class Member {
         for (let c of this.children) {
             let foundChild = c.findChild(id);
             if (foundChild) return foundChild;
-          }
+        }
         return null;
     }
 
@@ -89,10 +186,11 @@ export default class Member {
         return root;
     }
 
-    static fromRawData(rawData) {
-        let flatList = this._createMembersFromRawData(rawData);
+    static fromRawData(rawData, language) {
+        let flatList = this._createMembersFromRawData(rawData, language);
         let root = this._buildChildParentRelationships(flatList);
-        root.calculate_group_total();
+        root.calculate_overallstructure_total();
+        Member.update_grouptotals_tree(root);
         return root;
     }
 
@@ -136,13 +234,13 @@ export default class Member {
         return members[0];
     }
 
-    static _createMembersFromRawData(rawData) {
+    static _createMembersFromRawData(rawData, language) {
         let levelToLastMemberMap = new Map();
         let flatList = [];
 
         for (let row of rawData) {
             let member = new Member();
-            member.parse(row);
+            member.parse(row, language);
             if (!member.id) continue;
 
             let level = parseInt(member.level.split('.')[1]);
