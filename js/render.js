@@ -20,21 +20,23 @@ export default class Renderer {
 
     }
 
-    static titleMap = {
-        "А": "Ассистент",
-        "БД": "Бриллиантовый Директор",
-        "Д": "Директор",
-        "ИД": "Изумрудный Директор",
-        "мА": "Младший Ассистент",
-        "ЗД": "Золотой Директор",
-        "п": "Потребитель",
-        "пп": "Премиум потребитель",
-        "СД": "Серебрянный Директор",
-        "2МС": "Дабл Серебрянный Мастер",
-        "М": "Мастер",
-        "МЗ": "Золотой Мастер",
-        "МС": "Серебрянный Мастер",
-        "МП": "Платиновый Мастер",
+    static {
+        this.titleMap = {
+            "А": "Ассистент",
+            "БД": "Бриллиантовый Директор",
+            "Д": "Директор",
+            "ИД": "Изумрудный Директор",
+            "мА": "Младший Ассистент",
+            "ЗД": "Золотой Директор",
+            "п": "Потребитель",
+            "пп": "Премиум потребитель",
+            "СД": "Серебрянный Директор",
+            "2МС": "Дабл Серебрянный Мастер",
+            "М": "Мастер",
+            "МЗ": "Золотой Мастер",
+            "МС": "Серебрянный Мастер",
+            "МП": "Платиновый Мастер",
+        }
     }
 
     renderMermaid(templateNode) {
@@ -49,8 +51,8 @@ export default class Renderer {
         //     mermaidStr += this.renderMermaidCard(item);
         // });
 
-        for( let i=0; i< this.data.length; i++){
-            let width = Math.ceil(this.data[i].grouptotal*100/this.data[0].grouptotal);
+        for (let i = 0; i < this.data.length; i++) {
+            let width = Math.ceil(this.data[i].grouptotal * 100 / this.data[0].grouptotal);
             mermaidStr += this.renderMermaidCard(this.data[i], i, width);
         }
         mermaid.render('some', mermaidStr).then(insertSvg)
@@ -78,8 +80,8 @@ export default class Renderer {
         let nameLink = `<a href="#${m.id}">${m.name}</a>`;
 
         let card = `${parentLink}${m.id}["${title}<b>${nameLink}</b><br>${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`;
-        if(cardNum>0)  {
-            card += `linkStyle ${cardNum-1} stroke-width:${linkWidth>0?linkWidth:1}px;\n`;
+        if (cardNum > 0) {
+            card += `linkStyle ${cardNum - 1} stroke-width:${linkWidth > 0 ? linkWidth : 1}px;\n`;
         }
 
         return card;
@@ -88,7 +90,7 @@ export default class Renderer {
     renderBreadcrumbs(targetElement, currentNode) {
         let n = currentNode;
         let breadcrumbs = [];
-        while(n) {
+        while (n) {
             breadcrumbs.push(`<a class="breadcrumb" href="#${n.id}">${n.name}</a>`);
             n = n.parent;
         }
