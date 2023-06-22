@@ -31,18 +31,15 @@
         }
 
         function renderData(node) {
-            let data = Member.flattenTree(node);
+            let renderer = new Renderer();
 
-            let renderer = new Renderer(data);
-
-            let diagElement = document.getElementById("diagram");
-            let mermaidStr = renderer.renderMermaid(diagElement);
+            renderer.renderMermaid(document.getElementById("diagram"), node);
 
             renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
 
         };
 
-        document.getElementById("btnParse").addEventListener('click', parseUploaded);
+        document.getElementById("excelFile").addEventListener('change', parseUploaded);
 
         // Add a click event listener to the document
         document.addEventListener('click', function (event) {
@@ -60,7 +57,6 @@
 <body>
     Выбрать файл отчёта <input type="file" id="excelFile" />
 
-    <button id="btnParse">Загрузить</button>
     <pre id="output"></pre>
 
     <div id="breadcrumbs"></div>

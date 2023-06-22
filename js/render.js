@@ -1,9 +1,8 @@
 import Member from "./member.js";
 
 export default class Renderer {
-    constructor(data) {
-        this.data = data;
-        this.data[0].parent = this.data[0].parentId = undefined;
+    constructor() {
+        this.linkMaxWidth = 50;
 
         mermaid.initialize({
             startOnLoad: true,
@@ -17,27 +16,22 @@ export default class Renderer {
                 // defaultRenderer: 'dagre-d3'
             }
         });
-
-
     }
 
-    renderMermaid(templateNode) {
+    renderMermaid(templateNode, node) {
         var insertSvg = function (svgCode, bindFunctions) {
             templateNode.innerHTML = svgCode.svg;
             bindFunctions?.(element);
         }
 
-
+        let data = Member.flattenTree(node);
+        data[0].parent = data[0].parentId = undefined;
 
         let mermaidStr = 'graph TD;\n';
 
-        // this.data.forEach(item => {
-        //     mermaidStr += this.renderMermaidCard(item);
-        // });
-
-        for (let i = 0; i < this.data.length; i++) {
-            let width = Math.ceil(this.data[i].overallstructuretotal * 100 / this.data[0].overallstructuretotal);
-            mermaidStr += this.renderMermaidCard(this.data[i], i, width);
+        for (let i = 0; i < data.length; i++) {
+            let width = Math.ceil(data[i].overallstructuretotal * this.linkMaxWidth / data[0].overallstructuretotal);
+            mermaidStr += this.renderMermaidCard(data[i], i, width);
         }
         mermaid.render('some', mermaidStr).then(insertSvg)
 
@@ -67,35 +61,4 @@ export default class Renderer {
         let result = breadcrumbs.reverse().join(" -- ");
         targetElement.innerHTML = result;
     }
-
-    renderSankeyData() {
-        let nodes = [];
-        let links = [];
-
-        // create a dictionary with 'id' as key and node object as value
-        let nodeLookup = {};
-
-        // recursive function to handle arbitrary tree depth
-        function traverse(node, parentNode = null) {
-            let currentNode = { node: parseInt(node.id), name: node.name };
-            nodes.push(currentNode);
-            nodeLookup[node.id] = currentNode;
-
-            // if it has parent, add links from parent to child
-            if (parentNode !== null) {
-                links.push({ source: parentNode.node, target: currentNode.node, value: node.grouptotal || 2 });
-            }
-
-            // if it has children, recursively add each child
-            if (node.children && node.children.length > 0) {
-                node.children.forEach(child => traverse(child, currentNode));
-            }
-        }
-
-        // traverse the first node in the data array
-        traverse(this.data);
-
-        return { nodes, links };
-    }
-
 }
