@@ -33,9 +33,11 @@
         function renderData(node) {
             let renderer = new Renderer();
 
-            renderer.renderMermaid(document.getElementById("diagram"), node);
+            renderer.renderMermaidFlow(document.getElementById("diagram"), node);
 
             renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
+
+            // renderer.renderMermaidMindmap(document.getElementById("mm"), node);
 
         };
 
@@ -63,6 +65,8 @@
     <br>
 
     <div id="diagram"></div>
+
+    <div id="mm"></div>
 
 </body>
 
