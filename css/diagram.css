@@ -1,0 +1,12 @@
+.c2 tspan {
+    fill:aqua;
+}
+
+.c2 {
+    fill: black;
+}
+
+#mindmap .edge {
+    stroke-width: 5;
+    stroke: #999;
+}
