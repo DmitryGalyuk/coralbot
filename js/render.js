@@ -81,6 +81,7 @@ export default class Renderer {
             }
         }
         function renderNode(n, level) {
+            // result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.name})\n`);
             result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.title}\n`);
             result.push(`${'\t'.repeat(level)}${n.name}\n`);
             result.push(`${'\t'.repeat(level)}${n.overallstructuretotal.toFixed(0)} / ${n.grouptotal.toFixed(0)} / ${n.personalvolume})\n`);
@@ -130,7 +131,7 @@ export default class Renderer {
                 hueRangeEnd += node.children[i].hueSpan;
             }
 
-            if (!node.parent) {
+            if (node === root || !node.parent) {
                 node.hue = 0;
                 node.saturation = 0;
                 node.light = 0;
@@ -155,24 +156,6 @@ export default class Renderer {
 
 
         }
-
-        function assignHashLinks(target, root) {
-            let nodes = document.querySelectorAll(".mindmap-node");
-            for (let node of nodes) {
-                let classes = node.classList;
-                for (let cssClass of classes) {
-                    if( cssClass.startsWith("n")) {
-                        let id = cssClass.substring(1);
-                        let textNode = node.querySelector("text");
-                        let textContents = textNode.innerHTML;
-                        let foreign = document.createElement("foreignObject");
-                        foreign.innerHTML = `<a href="#${id}">${textContents}</a>`;
-                        textNode.innerHTML = "";
-                        textNode.appendChild(foreign);
-                    }
-                }
-            }
-        }
         
         traverse(root, renderNode);
         assignColors(root, [0, 360]);
@@ -182,7 +165,7 @@ export default class Renderer {
             for(let i=0;i<styleSheet.cssRules.length;i++) {if(styleSheet.cssRules[i].selectorText.includes(".section")) {styleSheet.deleteRule(i)}}
 
             traverse(root, renderStyles);
-        })//.then(() => assignHashLinks(targetElement, root));
+        });
 
         
     }

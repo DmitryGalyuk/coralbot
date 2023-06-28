@@ -47,7 +47,7 @@
 
             renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
 
-            // renderer.renderMermaidMindmap(document.getElementById("mm"), node);
+            renderer.renderMermaidMindmap(document.getElementById("mm"), node);
 
         };
 
@@ -55,6 +55,30 @@
 
         // Add a click event listener to the document
         document.addEventListener('click', function (event) {
+            if( event.target.tagName === "tspan") {
+                let mindmapdiv = document.getElementById("mm");
+                if (!mindmapdiv.contains(event.srcElement) ){
+                    return;
+                }
+                let elem = event.srcElement;
+                while (elem && mindmapdiv.contains(elem)) {
+                    if (elem.classList.contains("mindmap-node")) {
+                        let id;
+                        for (let c of elem.classList) {
+                            if( c.startsWith("n")) {
+                                id = c.substring(1);
+                                break;
+                            }
+                        }
+                        event.preventDefault();
+                        location.hash = "#"+id;
+                        renderData(root.findChild(id));
+                        return;
+                    }
+                    elem = elem.parentElement;
+                }
+            }
+
             // Check if the clicked element is a link with a hash
             if (event.target.tagName === 'A' && event.target.hash) {
                 event.preventDefault(); // Prevent the default action
