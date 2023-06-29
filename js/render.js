@@ -1,4 +1,5 @@
 import Member from "./member.js";
+import * as utils from './utils.js'
 
 export default class Renderer {
     constructor() {
@@ -29,7 +30,7 @@ export default class Renderer {
         });
     }
 
-    renderMermaidFlow(templateNode, node) {
+    async renderMermaidFlow(templateNode, node) {
         function renderMermaidCard(m, cardNum, linkWidth) {
             let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
             let nameLink = `<a href="#${m.id}">${m.name}</a>`;
@@ -53,7 +54,8 @@ export default class Renderer {
             let width = Math.ceil(data[i].overallstructuretotal * this.linkMaxWidth / data[0].overallstructuretotal);
             mermaidStr += renderMermaidCard(data[i], i, width);
         }
-        mermaid.render('flow', mermaidStr).then(this._getMermaidRenderCallback(templateNode));
+        let svgCode = await mermaid.render('flow', mermaidStr);
+        templateNode.innerHTML = svgCode.svg;
 
         return mermaidStr;
     }
@@ -71,15 +73,10 @@ export default class Renderer {
         targetElement.innerHTML = result;
     }
 
-    renderMermaidMindmap(targetElement, root) {
+    async renderMermaidMindmap(targetElement, root) {
         let result = ["mindmap\n"];
         let styleSheet;
-        function traverse(node, callback, level=1) {
-            callback(node, level);
-            for (let child of node.children) {
-                traverse(child, callback, level+1);
-            }
-        }
+
         function renderNode(n, level) {
             // result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.name})\n`);
             result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.title}\n`);
@@ -91,21 +88,7 @@ export default class Renderer {
             styleSheet.insertRule(`.n${n.id} {fill: hsl(${n.hue}, ${n.saturation}%, ${n.light}%);}`);
             styleSheet.insertRule(`.n${n.id} tspan {fill: yellow;}`)
         }
-        function mapValue(value, fromRange, toRange) {
-            let fromMin = fromRange[0];
-            let fromMax = fromRange[1];
-            let toMin = toRange[0];
-            let toMax = toRange[1];
-        
-            let fromSpan = fromMax - fromMin;
-            if (fromSpan == 0) return 0;
 
-            let toSpan = toMax - toMin;
-        
-            let valueScaled = (value - fromMin) / fromSpan;
-        
-            return toMin + (valueScaled * toSpan);
-        }
 
         function assignColors(node, odd=true) {
             if(!node.parent) {
@@ -113,23 +96,25 @@ export default class Renderer {
             } 
             // assign hueRangeSpan to each child having structure 
             for (let c of node.children) {
-                if (c.children && c.children.length>0) {
-                    c.hueSpan = mapValue(c.overallstructuretotal, [0, node.overallstructuretotal], node.hueRange);
+                if (c.children && c.children.length>0
+                    && c.titleObject?.order >= Member.directorOrder ) {
+                    c.hueSpan = utils.mapValue(c.overallstructuretotal, [0, node.overallstructuretotal], node.hueRange);
                 }
                 else {
                     c.hueSpan = 0;
                 }
             }
 
-            let hueRangeEnd = 0;
-            for (let i=node.children?.length % 2; i<node.children?.length; i+=2) {
-                node.children[i].hueRange = [hueRangeEnd, hueRangeEnd+node.children[i].hueSpan];
-                hueRangeEnd += node.children[i].hueSpan;
-            }
+            let hueRangeEnd = node.hueRange[0];
             for (let i = node.children?.length-1; i>=0; i-=2) {
                 node.children[i].hueRange = [hueRangeEnd, hueRangeEnd+node.children[i].hueSpan];
                 hueRangeEnd += node.children[i].hueSpan;
             }
+            for (let i=node.children?.length % 2; i<node.children?.length; i+=2) {
+                node.children[i].hueRange = [hueRangeEnd, hueRangeEnd+node.children[i].hueSpan];
+                hueRangeEnd += node.children[i].hueSpan;
+            }
+
 
             if (node === root || !node.parent) {
                 node.hue = 0;
@@ -138,7 +123,7 @@ export default class Renderer {
             }
             else if(node.titleObject?.order >= Member.directorOrder) {
                 node.hue = Math.ceil( (node.hueRange[1] - node.hueRange[0])/2 );
-                node.saturation = mapValue(
+                node.saturation = utils.mapValue(
                     node.titleObject.order, 
                     [Member.directorOrder, Math.max(...Member.order.map(o=>o.order))],
                     [50, 100]);
@@ -146,7 +131,7 @@ export default class Renderer {
             }
             else {
                 node.hue = node.parent.hue;
-                node.saturation = 20;
+                node.saturation = 10;
                 node.light = 50;
             }
 
@@ -157,15 +142,19 @@ export default class Renderer {
 
         }
         
-        traverse(root, renderNode);
+        utils.traverse(root, renderNode, 1);
         assignColors(root, [0, 360]);
-        mermaid.render('mindmap', result.join('')).then(this._getMermaidRenderCallback(targetElement)).then(()=>{
+        let svgCode = await mermaid.render('mindmap', result.join(''))
+        targetElement.innerHTML = svgCode.svg;
+        
         styleSheet = targetElement.querySelector("style").sheet;
-            for(let i=0;i<styleSheet.cssRules.length;i++) {if(styleSheet.cssRules[i].selectorText.includes(".edge")) {styleSheet.deleteRule(i)}}
-            for(let i=0;i<styleSheet.cssRules.length;i++) {if(styleSheet.cssRules[i].selectorText.includes(".section")) {styleSheet.deleteRule(i)}}
-
-            traverse(root, renderStyles);
-        });
+        for(let i=0;i<styleSheet.cssRules.length;i++) {
+            let sel = styleSheet.cssRules[i].selectorText;
+            if(sel.includes(".edge") || sel.includes(".section"))
+                styleSheet.deleteRule(i);
+        }
+        utils.traverse(root, renderStyles, 1);
+        
 
         
     }
