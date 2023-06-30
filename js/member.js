@@ -1,5 +1,6 @@
 import titleModifiersJson from './titlemodifiers.js';
 import titlesJson from './titles.js';
+import * as utils from './utils.js';
 
 export default class Member {
     constructor() {
@@ -159,6 +160,10 @@ export default class Member {
 
     }
 
+    isDirector() {
+        if (!this.titleObject) return false;
+        return this.titleObject.order >= Member.directorOrder;
+    }
 
     findChild(id) {
         if (this.id == id) return this;
@@ -171,6 +176,22 @@ export default class Member {
     }
 
     // rest of the methods here...
+
+    directorOnlyTree(node) {
+        let children = node?.children;
+        if (!node) {
+            children = this.children;
+            node = Object.assign({}, this);
+        }
+
+        for(let child of node.children) {
+            if (child.isDirector()) {
+                node.children.push(child);
+            }
+            this.directorOnlyTree(child);
+        }
+        return node;
+    }
 
     static removeZeroMembers(root) {
         if (!root) return null;

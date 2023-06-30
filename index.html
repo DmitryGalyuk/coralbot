@@ -4,19 +4,20 @@
     <title>Coralometer</title>
     <meta charset="UTF-8">
     <style>
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #444;
-        /* color: white; */
-    }
-}
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #444;
+                /* color: white; */
+            }
+        }
     </style>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="mask-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./img//favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./img//favicon-16x16.png">
+    <link rel="mask-icon" href="./img//apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
@@ -30,9 +31,12 @@
         let root = undefined;
 
         async function parseUploaded() {
+            location.hash = "";
             const file = document.querySelector('#excelFile').files[0];
             let parser = new ReportParses(file, "ru");
             root = await parser.parseExcel();
+
+            // let directors = root.directorOnlyTree();
 
             renderData(root);
         }
@@ -88,18 +92,18 @@
 </head>
 
 <body>
-    Выбрать файл отчёта <input type="file" id="excelFile" />
-
-    <pre id="output"></pre>
+    Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
+    
+    <!-- <button id="btnDirectorsOnly" onclick="toggleDirectorsOnly">Только директора</button>
+    <button id="btnHideZeros" onclick="toggHideZeroes">Спрятать нули</button> -->
 
     <div id="breadcrumbs"></div>
     <br>
 
+    <div id="mm"></div>
     <div id="diagram"></div>
 
-    <div id="mm"></div>
 
-    <div id="tree" style="height:700px; width:900px"></div>
 
 </body>
 

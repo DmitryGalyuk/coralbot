@@ -1,12 +1,151 @@
-.c2 tspan {
-    fill:aqua;
-}
-
-.c2 {
-    fill: black;
+#mindmap {
+    font-family: "trebuchet ms", verdana, arial, sans-serif;
+    font-size: 16px;
+    fill: #333;
 }
 
 #mindmap .edge {
-    stroke-width: 5;
-    stroke: #999;
+    stroke: #888;
+    stroke-width: 14;
+}
+
+#mindmap .section {
+    stroke: hsl(240, 100%, 83.5294117647%);
+    stroke-width: 3;
+}
+
+#mindmap .error-icon {
+    fill: #552222;
+}
+
+#mindmap .error-text {
+    fill: #552222;
+    stroke: #552222;
+}
+
+#mindmap .edge-thickness-normal {
+    stroke-width: 2px;
+}
+
+#mindmap .edge-thickness-thick {
+    stroke-width: 3.5px;
+}
+
+#mindmap .edge-pattern-solid {
+    stroke-dasharray: 0;
+}
+
+#mindmap .edge-pattern-dashed {
+    stroke-dasharray: 3;
+}
+
+#mindmap .edge-pattern-dotted {
+    stroke-dasharray: 2;
+}
+
+#mindmap .marker {
+    fill: #333333;
+    stroke: #333333;
+}
+
+#mindmap .marker.cross {
+    stroke: #333333;
+}
+
+#mindmap svg {
+    font-family: "trebuchet ms", verdana, arial, sans-serif;
+    font-size: 16px;
+}
+
+#mindmap .edge {
+    stroke-width: 3;
+}
+
+#mindmap .node-icon--1 {
+    font-size: 40px;
+    color: #ffffff;
+}
+
+#mindmap .disabled,
+#mindmap .disabled circle,
+#mindmap .disabled text {
+    fill: lightgray;
+}
+
+#mindmap .disabled text {
+    fill: #efefef;
+}
+
+#mindmap .node-icon-0 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-1 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-2 {
+    font-size: 40px;
+    color: #ffffff;
+}
+
+#mindmap .node-icon-4 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-5 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-6 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-7 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-8 {
+    font-size: 40px;
+    color: black;
+}
+
+
+#mindmap .node-icon-9 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .node-icon-10 {
+    font-size: 40px;
+    color: black;
+}
+
+#mindmap .icon-container {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mindmap .edge {
+    fill: none;
+}
+
+#mindmap .mindmap-node-label {
+    dy: 1em;
+    alignment-baseline: middle;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    text-align: center;
+}
+
+#mindmap :root {
+    --mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
 }

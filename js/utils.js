@@ -1,7 +1,7 @@
-export function traverse(node, callback, level=0) {
+export function traverseDepthFirst(node, callback, level = 0) {
     callback(node, level);
     for (let child of node.children) {
-        traverse(child, callback, level+1);
+        traverseDepthFirst(child, callback, level + 1);
     }
 }
 
