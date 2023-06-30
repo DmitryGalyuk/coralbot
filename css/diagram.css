@@ -6,11 +6,7 @@
 
 #mindmap .edge {
     stroke: #888;
-    stroke-width: 14;
-}
-
-#mindmap .section {
-    stroke: hsl(240, 100%, 83.5294117647%);
+    fill: none;
     stroke-width: 3;
 }
 
@@ -55,10 +51,6 @@
 #mindmap svg {
     font-family: "trebuchet ms", verdana, arial, sans-serif;
     font-size: 16px;
-}
-
-#mindmap .edge {
-    stroke-width: 3;
 }
 
 #mindmap .node-icon--1 {
@@ -116,7 +108,6 @@
     color: black;
 }
 
-
 #mindmap .node-icon-9 {
     font-size: 40px;
     color: black;
@@ -134,9 +125,6 @@
     align-items: center;
 }
 
-#mindmap .edge {
-    fill: none;
-}
 
 #mindmap .mindmap-node-label {
     dy: 1em;

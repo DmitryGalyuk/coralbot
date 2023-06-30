@@ -167,7 +167,7 @@ export default class Renderer {
             }
             else {
                 node.hue = node.parent.hue;
-                node.saturation = 50;
+                node.saturation = node.parent.saturation / 2;
                 node.light = 60;
             }
 
