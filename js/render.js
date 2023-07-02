@@ -35,6 +35,10 @@ export default class Renderer {
             let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
             let nameLink = `<a href="#${m.id}">${m.name}</a>`;
             let title = m.title ? m.title + "<br>" : "";
+            // let icon = "";
+            // if (m.titleObject?.icon) {
+            //     icon = `fa:${m.titleObject.icon} `;
+            // }
     
             let card = `${parentLink}${m.id}["${title}<b>${nameLink}</b><br>${m.overallstructuretotal.toFixed(0)} / ${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`;
             if (cardNum > 0) {
@@ -66,7 +70,11 @@ export default class Renderer {
         let n = currentNode;
         let breadcrumbs = [];
         while (n) {
-            breadcrumbs.push(`<a class="breadcrumb" href="#${n.id}">${n.name}</a>`);
+            let icon = "";
+            if (n.titleObject?.icon) {
+                icon = `<i class="${n.titleObject.icon}"></i> `;
+            }
+            breadcrumbs.push(`<a class="breadcrumb" href="#${n.id}">${icon}${n.name}</a>`);
             n = n.parent;
         }
         let result = breadcrumbs.reverse().join(" -- ");
