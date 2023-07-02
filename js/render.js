@@ -81,6 +81,9 @@ export default class Renderer {
             result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.title}\n`);
             result.push(`${'\t'.repeat(level)}${n.name}\n`);
             result.push(`${'\t'.repeat(level)}${n.overallstructuretotal.toFixed(0)} / ${n.grouptotal.toFixed(0)} / ${n.personalvolume})\n`);
+            if(n.titleObject?.icon) {
+                result.push(`${'\t'.repeat(level)}::icon(${n.titleObject.icon})\n`);
+            }
             result.push(`${'\t'.repeat(level)}:::n${n.id}\n`);
         }
         function renderStyles(n, level) {

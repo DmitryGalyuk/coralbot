@@ -1,3 +1,23 @@
+#mindmap i {
+    font-size: 3em;
+}
+
+.icongold {
+    color: gold;
+}
+
+.iconsilver {
+    color: silver;
+}
+
+.iconblue {
+    color: skyblue;
+}
+
+.icongreen {
+    color: green;
+}
+
 #mindmap {
     font-family: "trebuchet ms", verdana, arial, sans-serif;
     font-size: 16px;
@@ -53,11 +73,6 @@
     font-size: 16px;
 }
 
-#mindmap .node-icon--1 {
-    font-size: 40px;
-    color: #ffffff;
-}
-
 #mindmap .disabled,
 #mindmap .disabled circle,
 #mindmap .disabled text {
@@ -66,56 +81,6 @@
 
 #mindmap .disabled text {
     fill: #efefef;
-}
-
-#mindmap .node-icon-0 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-1 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-2 {
-    font-size: 40px;
-    color: #ffffff;
-}
-
-#mindmap .node-icon-4 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-5 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-6 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-7 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-8 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-9 {
-    font-size: 40px;
-    color: black;
-}
-
-#mindmap .node-icon-10 {
-    font-size: 40px;
-    color: black;
 }
 
 #mindmap .icon-container {
