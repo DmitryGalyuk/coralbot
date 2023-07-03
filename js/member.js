@@ -4,7 +4,7 @@ import * as utils from './utils.js';
 
 export default class Member {
     constructor() {
-        this.parent = "";
+        this.parent = null;
         this.children = [];
         this.grouptotal = undefined;
 
@@ -175,38 +175,6 @@ export default class Member {
         return null;
     }
 
-    // rest of the methods here...
-
-    directorOnlyTree(node) {
-        let children = node?.children;
-        if (!node) {
-            children = this.children;
-            node = Object.assign({}, this);
-        }
-
-        for(let child of node.children) {
-            if (child.isDirector()) {
-                node.children.push(child);
-            }
-            this.directorOnlyTree(child);
-        }
-        return node;
-    }
-
-    static removeZeroMembers(root) {
-        if (!root) return null;
-
-        // Filter out children with personalvolume of 0
-        root.children = root.children.filter(member => member.grouptotal !== 0);
-
-        // Recursively remove zero-volume members from each child
-        for (let child of root.children) {
-            this.removeZeroMembers(child);
-        }
-
-        return root;
-    }
-
     static fromRawData(rawData, language) {
         let flatList = this._createMembersFromRawData(rawData, language);
         let root = this._buildChildParentRelationships(flatList);
@@ -216,25 +184,9 @@ export default class Member {
     }
 
     static flattenTree(root) {
-        let flatList = [];
-
-        function traverse(node) {
-            // Create a copy of the node
-            let nodeCopy = Object.assign({}, node);
-            // Remove the children property from the node copy
-            nodeCopy.children = undefined;
-            // Add the node copy to the flat list
-            flatList.push(nodeCopy);
-
-            if (node.children) {
-                for (let child of node.children) {
-                    traverse(child);
-                }
-            }
-        }
-
-        traverse(root);
-        return flatList;
+        let nodeslist = []; 
+        utils.traverseDepthFirst(root, n=>nodeslist.push(Object.assign(new Member(), n)));
+        return nodeslist;
     }
 
     static _buildChildParentRelationships(members) {
@@ -276,5 +228,46 @@ export default class Member {
         }
 
         return flatList;
+    }
+
+    static clone(root) {
+        let nodeslist = Member.flattenTree(root);
+        nodeslist.forEach(n=>n.children=[]);
+        Member._buildChildParentRelationships(nodeslist);
+        return nodeslist[0];
+    }
+
+    static query(root, predicate) {
+        if (!root || !predicate || typeof predicate !== "function") return null;
+        if (!predicate(root)) return null;
+
+        let rootCopy = Member.clone(root);
+        let nodeslist = []; 
+        utils.traverseDepthFirst(rootCopy, n=>nodeslist.push(n));
+
+        let node = nodeslist.pop();
+        while (node) {
+            if (!node.parent) break; //reached the root
+            
+            if (predicate(node)) {
+                // keep, move to the parent matching the predicate
+                let parent = node.parent;
+                while (!predicate(parent)) {
+                    parent = parent.parent;
+                }
+                if (parent !== node.parent) {
+                    parent.children.push(node);
+                    node.parentId = parent.id;
+                    let i = node.parent.children.findIndex(c=>c.id==node.id);
+                    node.parent.children.splice(i, 1);
+                }
+            } else {
+                let i = node.parent.children.findIndex(c=>c.id==node.id);
+                node.parent.children.splice(i, 1);
+            }
+            node = nodeslist.pop();
+        }
+
+        return rootCopy;
     }
 }

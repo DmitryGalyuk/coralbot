@@ -11,6 +11,8 @@
     <link rel="mask-icon" href="./img//apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
 
+    <!-- <link rel="reference" href="https://mtennekes.github.io/downloads/publications/TreeColors_manuscript.pdf"> -->
+
     <script src="https://kit.fontawesome.com/b0394b38ac.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -82,14 +84,20 @@
                 renderData(node);
             }
         });
+
+        document.getElementById("btnDirectorsOnly").addEventListener("click", toggleDirectorsOnly);
+
+        function toggleDirectorsOnly() {
+            renderData( Member.query(root, n=>n.isDirector()) );
+        }
     </script>
 </head>
 
 <body>
     Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
     
-    <!-- <button id="btnDirectorsOnly" onclick="toggleDirectorsOnly">Только директора</button>
-    <button id="btnHideZeros" onclick="toggHideZeroes">Спрятать нули</button> -->
+    <button id="btnDirectorsOnly">Только директора</button>
+    <button id="btnHideZeros">Спрятать нули</button>
 
     <div id="breadcrumbs"></div>
     <br>
