@@ -32,13 +32,14 @@
             let parser = new ReportParses(file, "ru");
             root = await parser.parseExcel();
 
-            // let directors = root.directorOnlyTree();
-
             renderData(root);
         }
 
         function renderData(node) {
             let renderer = new Renderer();
+
+            // renderer.renderNoOrders(document.getElementById("noOrders"), Member.query(root,
+            //     n => n.monthNoVolume == 3, p=>p.isDirector()));
 
             renderer.renderMermaidFlow(document.getElementById("diagram"), node);
 
@@ -86,9 +87,16 @@
         });
 
         document.getElementById("btnDirectorsOnly").addEventListener("click", toggleDirectorsOnly);
+        document.getElementById("btnNoOrders").addEventListener("click", toggleNoOrders);
+
+        function toggleNoOrders() {
+            renderData(Member.query(root,
+                n => 1 < n.monthNoVolume && n.monthNoVolume < 4,
+                p => p.isDirector()) );
+        }
 
         function toggleDirectorsOnly() {
-            renderData( Member.query(root, n=>n.isDirector()) );
+            renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector()) );
         }
     </script>
 </head>
@@ -97,7 +105,12 @@
     Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
     
     <button id="btnDirectorsOnly">Только директора</button>
-    <button id="btnHideZeros">Спрятать нули</button>
+    <button id="btnNoOrders">Без закупок до 3 мес</button>
+    <!-- <button id="btnHideZeros">Спрятать нули</button> -->
+
+    <br>
+
+    <div id="noOrders"></div>
 
     <div id="breadcrumbs"></div>
     <br>

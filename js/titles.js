@@ -27,7 +27,7 @@ export default [
         "name": "Assistant",
         "short": { "ru": "А" },
         "long": { "ru": "Ассистент" },
-        "icon": "fa-sharp fa-regular fa-graduation-cap"
+        "icon": "fa-solid fa-graduation-cap"
 
     },
     {
@@ -35,7 +35,7 @@ export default [
         "name": "Director",
         "short": { "ru": "Д" },
         "long": { "ru": "Директор" },
-        "icon": "fa-sharp fa-regular fa-briefcase"
+        "icon": "fa-solid fa-briefcase"
 
     },
     {
@@ -43,7 +43,7 @@ export default [
         "name": "SilverDirector",
         "short": { "ru": "СД" },
         "long": { "ru": "Серебрянный Директор" },
-        "icon": "fa-sharp fa-regular fa-briefcase iconsilver"
+        "icon": "fa-solid fa-briefcase iconsilver"
 
     },
     {
@@ -51,7 +51,7 @@ export default [
         "name": "GoldenDirector",
         "short": { "ru": "ЗД" },
         "long": { "ru": "Золотой Директор" },
-        "icon": "fa-sharp fa-regular fa-briefcase icongold"
+        "icon": "fa-solid fa-briefcase icongold"
 
     },
     {

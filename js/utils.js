@@ -1,9 +1,10 @@
-export function traverseDepthFirst(node, callback, level = 0) {
+export function traverse(node, callback, level = 0) {
     callback(node, level);
     for (let child of node.children) {
-        traverseDepthFirst(child, callback, level + 1);
+        traverse(child, callback, level + 1);
     }
 }
+
 
 export function mapValue(value, fromRange, toRange) {
     let fromMin = fromRange[0];

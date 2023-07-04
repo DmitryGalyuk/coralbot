@@ -35,12 +35,13 @@ export default class Renderer {
             let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
             let nameLink = `<a href="#${m.id}">${m.name}</a>`;
             let title = m.title ? m.title + "<br>" : "";
-            // let icon = "";
-            // if (m.titleObject?.icon) {
-            //     icon = `fa:${m.titleObject.icon} `;
-            // }
     
-            let card = `${parentLink}${m.id}["${title}<b>${nameLink}</b><br>${m.overallstructuretotal.toFixed(0)} / ${m.grouptotal.toFixed(0)} / ${m.personalvolume}"]\n`;
+            let card = `${parentLink}${m.id}["<i class="${m.titleObject?.icon}"></i>${title}<b>${nameLink}</b><br>`;
+            card += `${m.overallstructuretotal.toFixed(0)} / ${m.grouptotal.toFixed(0)} / ${m.personalvolume}`;
+            if (m.monthNoVolume > 0) {
+                card += `<br>Без закупок: ${m.monthNoVolume} мес`
+            }
+            card += `"]\n`;
             if (cardNum > 0) {
                 card += `linkStyle ${cardNum - 1} stroke-width:${linkWidth > 0 ? linkWidth : 1}px;\n`;
             }
@@ -92,11 +93,10 @@ export default class Renderer {
             if(n.titleObject?.icon) {
                 result.push(`${'\t'.repeat(level)}::icon(${n.titleObject.icon})\n`);
             }
-            result.push(`${'\t'.repeat(level)}:::n${n.id}\n`);
+            result.push(`${'\t'.repeat(level)}:::n${n.id} ${n.titleObject?.name ?? ""}\n`);
         }
         function renderStyles(n, level) {
             document.styleSheets[0].insertRule(`.n${n.id} {fill: hsl(${n.hue}, ${n.saturation}%, ${n.light}%);}`);
-            document.styleSheets[0].insertRule(`.n${n.id} tspan {fill: yellow;}`)
         }
 
         function calcHueSpans(node, level=0) {
@@ -185,20 +185,36 @@ export default class Renderer {
             for (let c of node.children) {
                 assignColors(c, level+1);
             }
-
-
         }
         
         calcHueSpans(root);
         calcHueRanges(root);
         assignColors(root);
-        utils.traverseDepthFirst(root, renderNode, 1);
+        utils.traverse(root, renderNode, 1);
 
         let svgCode = await mermaid.render('mindmap', result.join(''))
         targetElement.innerHTML = svgCode.svg;
         
         targetElement.querySelector("style").remove();
-        utils.traverseDepthFirst(root, renderStyles, 1);
+        utils.traverse(root, renderStyles, 1);
+    }
+
+    renderNoOrders(targetElement, root) {
+        let result = ["<ul>"];
+        utils.traverse(root, function rendercard(node, level) {
+            if(level > 0){
+                result.push("<li>");
+                result.push(`<i class="${node.parent.titleObject?.icon}"></i> <a href="#${node.parent.id}">${node.parent.name}</a> - `);
+                result.push(`<i class="${node.titleObject?.icon}"></i> <a href="#${node.id}">${node.name}</a>: `);
+                result.push(`${node.monthNoVolume} m`);
+                result.push("</li>");
+            }
+            for (let c of node.children) {
+                rendercard(c, level+1);
+            }
+        });
+        result.push("</ul>");
+        targetElement.innerHTML = result.join("");
     }
 
 }

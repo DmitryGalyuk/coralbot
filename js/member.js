@@ -185,7 +185,7 @@ export default class Member {
 
     static flattenTree(root) {
         let nodeslist = []; 
-        utils.traverseDepthFirst(root, n=>nodeslist.push(Object.assign(new Member(), n)));
+        utils.traverse(root, n=>nodeslist.push(Object.assign(new Member(), n)));
         return nodeslist;
     }
 
@@ -237,34 +237,37 @@ export default class Member {
         return nodeslist[0];
     }
 
-    static query(root, predicate) {
-        if (!root || !predicate || typeof predicate !== "function") return null;
-        if (!predicate(root)) return null;
+    static query(root, nodePredicate, parentPredicate = ()=>true) {
+        // if (!root || !nodePredicate || typeof nodePredicate !== "function") return null;
+        if (!parentPredicate(root)) return null;
 
         let rootCopy = Member.clone(root);
         let nodeslist = []; 
-        utils.traverseDepthFirst(rootCopy, n=>nodeslist.push(n));
+        utils.traverse(rootCopy, n=>nodeslist.push(n));
 
         let node = nodeslist.pop();
         while (node) {
             if (!node.parent) break; //reached the root
             
-            if (predicate(node)) {
+            if (nodePredicate(node) || node.notFilterOut) {
                 // keep, move to the parent matching the predicate
                 let parent = node.parent;
-                while (!predicate(parent)) {
+                while (!parentPredicate(parent)) {
                     parent = parent.parent;
                 }
                 if (parent !== node.parent) {
+                    parent.notFilterOut = true;
                     parent.children.push(node);
-                    node.parentId = parent.id;
                     let i = node.parent.children.findIndex(c=>c.id==node.id);
                     node.parent.children.splice(i, 1);
+                    
+                    node.parentId = parent.id;
+                    node.parent = parent;
                 }
             } else {
                 let i = node.parent.children.findIndex(c=>c.id==node.id);
                 node.parent.children.splice(i, 1);
-            }
+            } 
             node = nodeslist.pop();
         }
 

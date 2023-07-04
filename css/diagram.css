@@ -17,9 +17,38 @@ a {
     
 }
 
+button {
+    margin: 1em;
+}
+
 #mindmap i {
     font-size: 3em;
 }
+
+#mindmap tspan
+{
+    fill: black;
+}
+
+#mindmap .Director tspan,
+#mindmap .SilverDirector tspan,
+#mindmap .GolgDirector tspan,
+#mindmap .EmelaldDirector tspan,
+#mindmap .DiamondDirector tspan
+{
+    fill: gold;
+}
+
+#mindmap .Consumer i,
+#mindmap .PremiumConsumer i,
+#mindmap .JuniorAssistant i,
+#mindmap .Assistant i
+{
+    font-size: 2em;
+}
+
+
+
 
 .icongold {
     color: gold;
