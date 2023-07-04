@@ -39,7 +39,16 @@ button {
 #mindmap .EmeraldDirector tspan,
 #mindmap .DiamondDirector tspan
 {
-    fill: gold;
+    fill: black;
+}
+
+#mindmap .Master tspan,
+#mindmap .SilverMaster tspan,
+#mindmap .DoubleSilverMaster tspan,
+#mindmap .GoldenMaster tspan,
+#mindmap .PlatinumMaster tspan
+{
+    fill: black;
 }
 
 #mindmap .Consumer i,
@@ -47,10 +56,34 @@ button {
 #mindmap .JuniorAssistant i,
 #mindmap .Assistant i
 {
+    font-size: 1.5em;
+}
+
+#mindmap .Director i,
+#mindmap .SilverDirector i,
+#mindmap .GoldenDirector i,
+#mindmap .EmeraldDirector i,
+#mindmap .DiamondDirector i
+{
     font-size: 2em;
 }
 
+#mindmap .Master i,
+#mindmap .SilverMaster i,
+#mindmap .DoubleSilverMaster i,
+#mindmap .GoldenMaster i,
+#mindmap .PlatinumMaster i
+{
+    font-size: 3em;
+}
 
+#mindmap .section-root {
+    fill: black;
+}
+
+#mindmap .section-root tspan {
+    fill: white;
+}
 
 
 .icongold {

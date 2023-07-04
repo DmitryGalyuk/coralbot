@@ -28,8 +28,15 @@
         let renderer = new Renderer("diagram", "mm", "breadcrumbs");
 
         document.getElementById("excelFile").addEventListener('change', parseUploaded);
-        document.getElementById("btnDirectorsOnly").addEventListener("click", toggleDirectorsOnly);
-        document.getElementById("btnNoOrders").addEventListener("click", toggleNoOrders);
+
+        document.getElementById("btnDirectorsOnly").addEventListener("click", ()=>
+            renderer.renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector())));
+        document.getElementById("btnMastersOnly").addEventListener("click", ()=>
+            renderer.renderData( Member.query(root, n=>n.isMaster(), p=>p.isMaster())));
+        document.getElementById("btnNoOrders").addEventListener("click", ()=>
+            renderer.renderData(Member.query(root, n => 1 < n.monthNoVolume && n.monthNoVolume < 4, p => p.isDirector())));
+        document.getElementById("btnNoFilter").addEventListener("click", ()=>
+            renderer.renderData(root));
 
         async function parseUploaded() {
             location.hash = "";
@@ -43,17 +50,6 @@
             renderer.renderData(root);
         }
 
-
-
-        function toggleNoOrders() {
-            renderer.renderData(Member.query(root,
-                n => 1 < n.monthNoVolume && n.monthNoVolume < 4,
-                p => p.isDirector()) );
-        }
-
-        function toggleDirectorsOnly() {
-            renderer.renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector()) );
-        }
     </script>
 </head>
 
@@ -61,8 +57,11 @@
     <i class="fa-solid fa-language"></i> <select id="selectLang"><option value="ru" selected>русский</option></select> 
     Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
     
-    <button id="btnDirectorsOnly">Только директора</button>
+    <button id="btnDirectorsOnly">Только Директора</button>
+    <button id="btnMastersOnly">Только Мастера</button>
     <button id="btnNoOrders">Без закупок до 3 мес</button>
+    <button id="btnNoFilter">Показать всю структуру</button>
+
     <!-- <button id="btnHideZeros">Спрятать нули</button> -->
 
     <br>

@@ -122,6 +122,7 @@ export default class Member {
     }
 
     static directorOrder = (Member.order.find(o => o.name == "Director") || {}).order;
+    static masterOrder = (Member.order.find(o => o.name == "Master") || {}).order;
 
     calculate_group_totals() {
         // Initialize the grouptotal with the member's personalvolume
@@ -163,6 +164,11 @@ export default class Member {
     isDirector() {
         if (!this.titleObject) return false;
         return this.titleObject.order >= Member.directorOrder;
+    }
+
+    isMaster() {
+        if (!this.titleObject) return false;
+        return this.titleObject.order >= Member.masterOrder;
     }
 
     findChild(id) {

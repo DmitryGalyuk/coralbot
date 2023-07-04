@@ -71,6 +71,8 @@ export default class Renderer {
     }
 
     renderData(node) {
+        if (!node) return;
+        
         this.renderMermaidFlow(document.getElementById(this.flowchartId), node);
         this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), node);
         this.renderMermaidMindmap(document.getElementById(this.mindmapId), node);
