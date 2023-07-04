@@ -2,11 +2,15 @@ import Member from "./member.js";
 import * as utils from './utils.js'
 
 export default class Renderer {
-    constructor() {
+    constructor(flowchartId, mindmapId, breadcrumbsId) {
         this.linkMaxWidth = 50;
+        this.flowchartId = flowchartId;
+        this.mindmapId = mindmapId;
+        this.breadcrumbsId = breadcrumbsId;
+
+        this.dataRoot;
 
         let dark = false;
-
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             dark = true;
         }
@@ -28,7 +32,50 @@ export default class Renderer {
                 // padding: 20
             }
         });
+
+        let that = this;
+        // Add a click event listener to the document
+        document.addEventListener('click', function (event) {
+            if( event.target.tagName === "tspan") {
+                let mindmapdiv = document.getElementById(that.mindmapId);
+                if (!mindmapdiv.contains(event.target) ){
+                    return;
+                }
+                let elem = event.target;
+                while (elem && mindmapdiv.contains(elem)) {
+                    if (elem.classList.contains("mindmap-node")) {
+                        let id;
+                        for (let c of elem.classList) {
+                            if( c.startsWith("n")) {
+                                id = c.substring(1);
+                                break;
+                            }
+                        }
+                        event.preventDefault();
+                        location.hash = "#"+id;
+                        that.renderData(that.dataRoot.findChild(id));
+                        return;
+                    }
+                    elem = elem.parentElement;
+                }
+            }
+
+            // Check if the clicked element is a link with a hash
+            if (event.target.tagName === 'A' && event.target.hash) {
+                event.preventDefault(); // Prevent the default action
+                let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
+                let node = that.dataRoot.findChild(hash);
+                that.renderData(node);
+            }
+        });
     }
+
+    renderData(node) {
+        this.renderMermaidFlow(document.getElementById(this.flowchartId), node);
+        this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), node);
+        this.renderMermaidMindmap(document.getElementById(this.mindmapId), node);
+
+    };
 
     async renderMermaidFlow(templateNode, node) {
         function renderMermaidCard(m, cardNum, linkWidth) {

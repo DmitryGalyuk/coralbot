@@ -25,78 +25,33 @@
         import Member from './js/member.js'
 
         let root = undefined;
-
-        async function parseUploaded() {
-            location.hash = "";
-            const file = document.querySelector('#excelFile').files[0];
-            let parser = new ReportParses(file, "ru");
-            root = await parser.parseExcel();
-
-            renderData(root);
-        }
-
-        function renderData(node) {
-            let renderer = new Renderer();
-
-            // renderer.renderNoOrders(document.getElementById("noOrders"), Member.query(root,
-            //     n => n.monthNoVolume == 3, p=>p.isDirector()));
-
-            renderer.renderMermaidFlow(document.getElementById("diagram"), node);
-
-            renderer.renderBreadcrumbs(document.getElementById("breadcrumbs"), node);
-
-            renderer.renderMermaidMindmap(document.getElementById("mm"), node);
-
-        };
+        let renderer = new Renderer("diagram", "mm", "breadcrumbs");
 
         document.getElementById("excelFile").addEventListener('change', parseUploaded);
-
-        // Add a click event listener to the document
-        document.addEventListener('click', function (event) {
-            if( event.target.tagName === "tspan") {
-                let mindmapdiv = document.getElementById("mm");
-                if (!mindmapdiv.contains(event.srcElement) ){
-                    return;
-                }
-                let elem = event.srcElement;
-                while (elem && mindmapdiv.contains(elem)) {
-                    if (elem.classList.contains("mindmap-node")) {
-                        let id;
-                        for (let c of elem.classList) {
-                            if( c.startsWith("n")) {
-                                id = c.substring(1);
-                                break;
-                            }
-                        }
-                        event.preventDefault();
-                        location.hash = "#"+id;
-                        renderData(root.findChild(id));
-                        return;
-                    }
-                    elem = elem.parentElement;
-                }
-            }
-
-            // Check if the clicked element is a link with a hash
-            if (event.target.tagName === 'A' && event.target.hash) {
-                event.preventDefault(); // Prevent the default action
-                let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
-                let node = root.findChild(hash);
-                renderData(node);
-            }
-        });
-
         document.getElementById("btnDirectorsOnly").addEventListener("click", toggleDirectorsOnly);
         document.getElementById("btnNoOrders").addEventListener("click", toggleNoOrders);
 
+        async function parseUploaded() {
+            location.hash = "";
+            
+            const file = document.querySelector('#excelFile').files[0];
+            let parser = new ReportParses(file, "ru");
+            root = await parser.parseExcel();
+            renderer.dataRoot = root;
+
+            renderer.renderData(root);
+        }
+
+
+
         function toggleNoOrders() {
-            renderData(Member.query(root,
+            renderer.renderData(Member.query(root,
                 n => 1 < n.monthNoVolume && n.monthNoVolume < 4,
                 p => p.isDirector()) );
         }
 
         function toggleDirectorsOnly() {
-            renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector()) );
+            renderer.renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector()) );
         }
     </script>
 </head>
