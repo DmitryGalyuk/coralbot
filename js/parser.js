@@ -7,20 +7,23 @@ export default class ReportParses {
         this._memberList = undefined;
         this.language = language;
 
-        this.column2field = {
-            '': 'name',
-            '№': 'rownum',
-            'Уровень': 'level',
-            'Член клуба': 'id',
-            'Ранг/нД': 'rawtitle',
-            'P': 'unpayedOrders',
-            'ЛО': 'personalvolume',
-            'ЛГО': 'lgo',
-            'НСО': 'nso',
-            'Max. 3Р': 'maxzr',
-            '#': 'monthNoVolume',
-            'S': 'status'
-          };
+        this.column2field = 
+        {
+            "ru": {
+                '': 'name',
+                '№': 'rownum',
+                'Уровень': 'level',
+                'Член клуба': 'id',
+                'Ранг/нД': 'rawtitle',
+                'P': 'unpayedOrders',
+                'ЛО': 'personalvolume',
+                'ЛГО': 'lgo',
+                'НСО': 'nso',
+                'Max. 3Р': 'maxzr',
+                '#': 'monthNoVolume',
+                'S': 'status'
+            }
+        };
         this._file = file;
 
     }
@@ -55,7 +58,7 @@ export default class ReportParses {
        const headers = {};
         row = worksheet.getRow(rownum);
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-            headers[colNumber] = this.column2field[cell.value ?? ""];
+            headers[colNumber] = this.column2field[this.language][cell.value ?? ""];
         });
 
         // Process the remaining rows as data
