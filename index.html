@@ -34,8 +34,9 @@
         async function parseUploaded() {
             location.hash = "";
             
+            let lang = document.getElementById("selectLang").value;
             const file = document.querySelector('#excelFile').files[0];
-            let parser = new ReportParses(file, "ru");
+            let parser = new ReportParses(file, lang);
             root = await parser.parseExcel();
             renderer.dataRoot = root;
 
@@ -57,6 +58,7 @@
 </head>
 
 <body>
+    <i class="fa-solid fa-language"></i> <select id="selectLang"><option value="ru" selected>русский</option></select> 
     Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
     
     <button id="btnDirectorsOnly">Только директора</button>

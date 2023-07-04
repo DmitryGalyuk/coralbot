@@ -16,6 +16,9 @@ a {
     }
     
 }
+i {
+    vertical-align: middle;
+}
 
 button {
     margin: 1em;

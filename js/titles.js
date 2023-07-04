@@ -91,7 +91,7 @@ export default [
         "name": "DoubleSilverMaster",
         "short": { "ru": "2МС" },
         "long": { "ru": "Дабл Серебрянный Мастер" },
-        "icon": "fa-solid fa-chess-queen"
+        "icon": "fa-solid fa-chess-queen iconsilver"
 
     },
     {
