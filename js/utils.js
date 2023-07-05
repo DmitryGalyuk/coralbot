@@ -21,3 +21,23 @@ export function mapValue(value, fromRange, toRange) {
 
     return toMin + (valueScaled * toSpan);
 }
+
+export class Settings {
+    static _settings = (() => {
+        const settings = localStorage.getItem('settings');
+        return settings ? JSON.parse(settings) : {};
+    })();
+
+    static _save() {
+        localStorage.setItem('settings', JSON.stringify(this._settings));
+    }
+
+    static get language() {
+        return this._settings.language || "en";
+    }
+
+    static set language(lang) {
+        this._settings.language = lang;
+        this._save();
+    }
+}

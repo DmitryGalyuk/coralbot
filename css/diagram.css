@@ -6,6 +6,10 @@ a {
     color: #444;
 }
 
+.errorMessage {
+    color: red;
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #444;

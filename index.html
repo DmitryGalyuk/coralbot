@@ -23,9 +23,20 @@
         import ReportParses from './js/parser.js'
         import Renderer from './js/render.js'
         import Member from './js/member.js'
+        import {Settings} from './js/utils.js'
+        import { getTranslator } from "./js/translator.js";
+
 
         let root = undefined;
         let renderer = new Renderer("diagram", "mm", "breadcrumbs");
+        
+        document.getElementById("selectLang").value = Settings.language;
+        const T = await getTranslator();
+        T.use(Settings.language);
+        document.getElementById("selectLang").addEventListener("change", async (e)=>{
+            Settings.language=e.target.value;
+            T.use(e.target.value)
+            });
 
         document.getElementById("excelFile").addEventListener('change', parseUploaded);
 
@@ -40,11 +51,20 @@
 
         async function parseUploaded() {
             location.hash = "";
+            document.getElementById("spanParseFailed").textContent = "";
             
-            let lang = document.getElementById("selectLang").value;
+            let lang = Settings.language;
             const file = document.querySelector('#excelFile').files[0];
-            let parser = new ReportParses(file, lang);
-            root = await parser.parseExcel();
+            let parser;
+            try {
+                parser = new ReportParses(file, lang);
+                root = await parser.parseExcel();
+            }
+            catch {
+                document.querySelector('#excelFile').value = null;
+                document.getElementById("spanParseFailed").textContent = T.parseFailedMessage;
+                return;
+            }
             renderer.dataRoot = root;
 
             renderer.renderData(root);
@@ -54,8 +74,14 @@
 </head>
 
 <body>
-    <i class="fa-solid fa-language"></i> <select id="selectLang"><option value="ru" selected>русский</option></select> 
-    Выбрать файл отчёта <input type="file" id="excelFile" /> <br>
+    <i class="fa-solid fa-language"></i>
+    <select id="selectLang">
+        <option value="ru" selected>русский</option>
+        <option value="ua">Українська</option>
+        <option value="en">English</option>
+        <option value="it">Italiano</option>
+    </select> 
+    Выбрать файл отчёта <input type="file" id="excelFile" /> <span id="spanParseFailed" class="errorMessage"></span> <br>
     
     <button id="btnDirectorsOnly">Только Директора</button>
     <button id="btnMastersOnly">Только Мастера</button>

@@ -2,31 +2,43 @@ export default {
     "highest": {
         "short": {
             "ru": "1",
-            "en": "1"
+            "en": "1",
+            "it": "1",
+            "ua": "1"
         },
         "long": {
             "ru": "впервые",
-            "en": "first time"
+            "en": "first time",
+            "it": "prima volta",
+            "ua": "вперше"
         }
     },
     "open": {
         "short": {
             "ru": "о",
-            "en": "o"
+            "en": "o",
+            "it": "a",
+            "ua": "о"
         },
         "long": {
             "ru": "открытый",
-            "en": "open"
+            "en": "open",
+            "it": "aperto",
+            "ua": "відкритий"
         }
     },
     "new": {
         "short": {
             "ru": "н",
-            "en": "n"
+            "en": "n",
+            "it": "n",
+            "ua": "н"
         },
         "long": {
             "ru": "новый",
-            "en": "new"
+            "en": "new",
+            "it": "nuovo",
+            "ua": "новий"
         }
     }
 }

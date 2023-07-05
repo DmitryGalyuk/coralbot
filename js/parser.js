@@ -1,4 +1,7 @@
 import Member from './member.js';
+import { getTranslator } from "./translator.js";
+
+const T = await getTranslator();
 
 export default class ReportParses {
     constructor(file, language) {
@@ -7,23 +10,19 @@ export default class ReportParses {
         this._memberList = undefined;
         this.language = language;
 
-        this.column2field = 
-        {
-            "ru": {
-                '': 'name',
-                '№': 'rownum',
-                'Уровень': 'level',
-                'Член клуба': 'id',
-                'Ранг/нД': 'rawtitle',
-                'P': 'unpayedOrders',
-                'ЛО': 'personalvolume',
-                'ЛГО': 'lgo',
-                'НСО': 'nso',
-                'Max. 3Р': 'maxzr',
-                '#': 'monthNoVolume',
-                'S': 'status'
-            }
-        };
+        this.column2field = {};
+        this.column2field[T.name] = "name";
+        this.column2field[T.rownum] = "rownum";
+        this.column2field[T.level] = "level";
+        this.column2field[T.id] = "id";
+        this.column2field[T.rawtitle] = "rawtitle";
+        this.column2field[T.unpayedOrders] = "unpayedOrders";
+        this.column2field[T.personalvolume] = "personalvolume";
+        this.column2field[T.lgo] = "lgo";
+        this.column2field[T.nso] = "nso";
+        this.column2field[T.maxzr] = "maxzr";
+        this.column2field[T.monthNoVolume] = "monthNoVolume";
+        this.column2field[T.status] = "status";
         this._file = file;
 
     }
@@ -58,7 +57,7 @@ export default class ReportParses {
        const headers = {};
         row = worksheet.getRow(rownum);
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-            headers[colNumber] = this.column2field[this.language][cell.value ?? ""];
+            headers[colNumber] = this.column2field[cell.value ?? ""];
         });
 
         // Process the remaining rows as data
