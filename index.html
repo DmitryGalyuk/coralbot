@@ -30,20 +30,37 @@
         let root = undefined;
         let renderer = new Renderer("diagram", "mm", "breadcrumbs");
         
-        document.getElementById("selectLang").value = Settings.language;
         const T = await getTranslator();
-        T.use(Settings.language);
-        document.getElementById("selectLang").addEventListener("change", async (e)=>{
+        let selectLang = document.getElementById("selectLang");
+        if (Settings.language) {
+            await T.use(Settings.language);
+        } else {
+            Settings.language = T.currentLanguage;
+        }
+        T.languages.forEach(l => {
+            selectLang.add(new Option(l.name, l.code, l.code==T.currentLanguage, l.code==T.currentLanguage));
+        });
+        translate();
+        selectLang.addEventListener("change", async (e)=>{
             Settings.language=e.target.value;
-            T.use(e.target.value)
-            });
+            await T.use(e.target.value);
+            translate();
+        });
+
+        function translate() {
+            document.getElementById("spanSelectFile").textContent = T.SelectFile;
+            document.getElementById("btnDirectorsOnly").textContent = T.directorsOnly;
+            // document.getElementById("btnMastersOnly").textContent = T.mastersOnly;
+            document.getElementById("btnNoOrders").textContent = T.noOrdersXMonths(3);
+            document.getElementById("btnNoFilter").textContent = T.showFullStructure;
+        }
 
         document.getElementById("excelFile").addEventListener('change', parseUploaded);
 
         document.getElementById("btnDirectorsOnly").addEventListener("click", ()=>
             renderer.renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector())));
-        document.getElementById("btnMastersOnly").addEventListener("click", ()=>
-            renderer.renderData( Member.query(root, n=>n.isMaster(), p=>p.isMaster())));
+        // document.getElementById("btnMastersOnly").addEventListener("click", ()=>
+        //     renderer.renderData( Member.query(root, n=>n.isMaster(), p=>p.isMaster())));
         document.getElementById("btnNoOrders").addEventListener("click", ()=>
             renderer.renderData(Member.query(root, n => 1 < n.monthNoVolume && n.monthNoVolume < 4, p => p.isDirector())));
         document.getElementById("btnNoFilter").addEventListener("click", ()=>
@@ -62,7 +79,7 @@
             }
             catch {
                 document.querySelector('#excelFile').value = null;
-                document.getElementById("spanParseFailed").textContent = T.parseFailedMessage;
+                document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
                 return;
             }
             renderer.dataRoot = root;
@@ -75,16 +92,11 @@
 
 <body>
     <i class="fa-solid fa-language"></i>
-    <select id="selectLang">
-        <option value="ru" selected>русский</option>
-        <option value="ua">Українська</option>
-        <option value="en">English</option>
-        <option value="it">Italiano</option>
-    </select> 
-    Выбрать файл отчёта <input type="file" id="excelFile" /> <span id="spanParseFailed" class="errorMessage"></span> <br>
+    <select id="selectLang"></select> 
+    <span id="spanSelectFile"></span> <input type="file" id="excelFile" /> <span id="spanParseFailed" class="errorMessage"></span> <br>
     
     <button id="btnDirectorsOnly">Только Директора</button>
-    <button id="btnMastersOnly">Только Мастера</button>
+    <!-- <button id="btnMastersOnly">Только Мастера</button> -->
     <button id="btnNoOrders">Без закупок до 3 мес</button>
     <button id="btnNoFilter">Показать всю структуру</button>
 

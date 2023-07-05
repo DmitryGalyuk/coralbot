@@ -1,6 +1,7 @@
 import titleModifiersJson from './titlemodifiers.js';
 import titlesJson from './titles.js';
 import * as utils from './utils.js';
+import { getTranslator } from "./translator.js";
 
 export default class Member {
     constructor() {
@@ -10,7 +11,34 @@ export default class Member {
 
     }
 
-    parse(row, language) {
+    static loadedLanguages = [];
+
+    static order = titlesJson;
+    static languageModifiers = titleModifiersJson;
+
+    static directorOrder = (Member.order.find(o => o.name == "Director") || {}).order;
+    static masterOrder = (Member.order.find(o => o.name == "Master") || {}).order;
+
+    static async loadLanguage(lang) {
+        const T = await getTranslator();
+        for (let o of Member.order) {
+            if (!o.short) o.short = {};
+            o.short[lang] = T["short"+o.name];
+            if (!o.long) o.long = {};
+            o.long[lang] = T["long"+o.name];
+        }
+        for (let m in Member.languageModifiers) {
+            if (!Member.languageModifiers.hasOwnProperty(m)) continue;
+            Member.languageModifiers[m]={short: T["short"+m], long: T["long"+m]};
+        }
+        Member.loadedLanguages.push(lang);
+    }
+    
+    async parse(row, language) {
+        if (!Member.loadedLanguages.includes(language)) {
+            await Member.loadLanguage(language);
+        }
+
         this.language = language;
         this.rownum = row['rownum'];
         this.level = row['level'].trim();
@@ -35,8 +63,7 @@ export default class Member {
         }
     }
 
-    static order = titlesJson;
-    static languageModifiers = titleModifiersJson;
+
 
     fullTitle() {
         let titleParts = [];
@@ -121,8 +148,6 @@ export default class Member {
         return this.overallstructuretotal;
     }
 
-    static directorOrder = (Member.order.find(o => o.name == "Director") || {}).order;
-    static masterOrder = (Member.order.find(o => o.name == "Master") || {}).order;
 
     calculate_group_totals() {
         // Initialize the grouptotal with the member's personalvolume
@@ -130,7 +155,7 @@ export default class Member {
 
         for (let child of (this.children || [])) {
             // If the child is not a director, add its grouptotal to the total
-            if (!child.titleObject || child.titleObject.order < Member.directorOrder) {
+            if (!child.isDirector()) {
                 this.grouptotal += child.calculate_group_totals();
             }
         }
@@ -143,7 +168,7 @@ export default class Member {
 
         function traverse(node) {
             for (let child of node.children) {
-                if (child.titleObject && child.titleObject.order >= Member.directorOrder) {
+                if (child.isDirector()) {
                     // director found, push to stack and traverse deeper. 
                     // Higher director in stack -- no directors under them
                     stack.push(child);
@@ -181,8 +206,8 @@ export default class Member {
         return null;
     }
 
-    static fromRawData(rawData, language) {
-        let flatList = this._createMembersFromRawData(rawData, language);
+    static async fromRawData(rawData, language) {
+        let flatList = await this._createMembersFromRawData(rawData, language);
         let root = this._buildChildParentRelationships(flatList);
         root.calculate_overallstructure_total();
         Member.update_grouptotals_tree(root);
@@ -213,13 +238,13 @@ export default class Member {
         return members[0];
     }
 
-    static _createMembersFromRawData(rawData, language) {
+    static async _createMembersFromRawData(rawData, language) {
         let levelToLastMemberMap = new Map();
         let flatList = [];
 
         for (let row of rawData) {
             let member = new Member();
-            member.parse(row, language);
+            await member.parse(row, language);
             if (!member.id) continue;
 
             let level = parseInt(member.level.split('.')[1]);
