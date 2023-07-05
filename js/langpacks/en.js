@@ -40,5 +40,5 @@ export default {
     "mastersOnly": "Только Мастера",
     "noOrdersXMonths": "Без закупок до {0} мес",
     "showFullStructure": "Показать всю структуру",
-    "parseFailedMessage": "Не могу прочитать файл. Проверьте, правильно ли выбран язык файла"
+    "parseFailedMessage": "Can't read file. Check if the language of the file is correct"
 };
