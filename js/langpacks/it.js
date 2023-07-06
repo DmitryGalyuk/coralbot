@@ -58,5 +58,13 @@ export default {
     "mastersOnly": "Solo maestri",
     "noOrdersXMonths": "Nessun acquisto fino a {0} mesi",
     "showFullStructure": "Mostra tutta la struttura",
-    "parseFailedMessage": "Impossibile leggere il file. Controlla se la lingua del file è corretta. Se si verifica un errore, scrivimi a {0}"
+    "parseFailedMessage": "Impossibile leggere il file. Controlla se la lingua del file è corretta. Se si verifica un errore, scrivimi a {0}",
+
+    "spanFilterFrom": "Mostra le persone con un volume personale compreso tra ",
+    "spanFilterTo": "e",
+    "pointsPersonal": "punti di volume del personale",
+    "pointsGroup": "gruppi di punti di volume",
+    "pointsOverall": "punti nell'intera struttura",
+    "btnFilter": "Trovare",
+    "percentNextTitle": "% requirement for next title",
 };

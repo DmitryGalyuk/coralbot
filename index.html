@@ -19,75 +19,7 @@
 
     <link rel="stylesheet" href="css/diagram.css">
 
-    <script type="module">
-        import ReportParses from './js/parser.js'
-        import Renderer from './js/render.js'
-        import Member from './js/member.js'
-        import {Settings} from './js/utils.js'
-        import { getTranslator } from "./js/translator.js";
-
-
-        let root = undefined;
-        let renderer = new Renderer("diagram", "mm", "breadcrumbs");
-        
-        const T = await getTranslator();
-        let selectLang = document.getElementById("selectLang");
-        if (Settings.language) {
-            await T.use(Settings.language);
-        } else {
-            Settings.language = T.currentLanguage;
-        }
-        T.languages.forEach(l => {
-            selectLang.add(new Option(l.name, l.code, l.code==T.currentLanguage, l.code==T.currentLanguage));
-        });
-        translate();
-        selectLang.addEventListener("change", async (e)=>{
-            Settings.language=e.target.value;
-            await T.use(e.target.value);
-            translate();
-        });
-
-        function translate() {
-            document.getElementById("spanSelectFile").textContent = T.SelectFile;
-            document.getElementById("btnDirectorsOnly").textContent = T.directorsOnly;
-            // document.getElementById("btnMastersOnly").textContent = T.mastersOnly;
-            document.getElementById("btnNoOrders").textContent = T.noOrdersXMonths(3);
-            document.getElementById("btnNoFilter").textContent = T.showFullStructure;
-        }
-
-        document.getElementById("excelFile").addEventListener('change', parseUploaded);
-
-        document.getElementById("btnDirectorsOnly").addEventListener("click", ()=>
-            renderer.renderData( Member.query(root, n=>n.isDirector(), p=>p.isDirector())));
-        // document.getElementById("btnMastersOnly").addEventListener("click", ()=>
-        //     renderer.renderData( Member.query(root, n=>n.isMaster(), p=>p.isMaster())));
-        document.getElementById("btnNoOrders").addEventListener("click", ()=>
-            renderer.renderData(Member.query(root, n => 1 < n.monthNoVolume && n.monthNoVolume < 4, p => p.isDirector())));
-        document.getElementById("btnNoFilter").addEventListener("click", ()=>
-            renderer.renderData(root));
-
-        async function parseUploaded() {
-            location.hash = "";
-            document.getElementById("spanParseFailed").textContent = "";
-            
-            let lang = Settings.language;
-            const file = document.querySelector('#excelFile').files[0];
-            let parser;
-            try {
-                parser = new ReportParses(file, lang);
-                root = await parser.parseExcel();
-            }
-            catch {
-                document.querySelector('#excelFile').value = null;
-                document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
-                return;
-            }
-            renderer.dataRoot = root;
-
-            renderer.renderData(root);
-        }
-
-    </script>
+    <script src="./js/index.js" type="module"></script>
 </head>
 
 <body>
@@ -95,11 +27,24 @@
     <select id="selectLang"></select> 
     <span id="spanSelectFile"></span> <input type="file" id="excelFile" /> <span id="spanParseFailed" class="errorMessage"></span> <br>
     
-    <button id="btnDirectorsOnly">Только Директора</button>
-    <!-- <button id="btnMastersOnly">Только Мастера</button> -->
-    <button id="btnNoOrders">Без закупок до 3 мес</button>
-    <button id="btnNoFilter">Показать всю структуру</button>
+    <button id="btnDirectorsOnly">Directors only</button>
+    <!-- <button id="btnMastersOnly">Masters Only</button> -->
+    <button id="btnNoOrders">No purcases last 3 months</button>
+    <button id="btnNoFilter">Show whole structure</button>
 
+    <div class="filter">
+        <span id="spanFilterFrom">Show people with </span>
+        <input id="filterFrom" type="number" size="4">
+        <span id="spanFilterTo">to</span>
+        <input id="filterTo" type="number" size="4">
+        <select id="selectFilterType">
+            <option value="pointsPersonal">personal volume points</option>
+            <option value="pointsGroup">group volume points</option>
+            <option value="pointsOverall">structure volume points</option>
+            <!-- <option value="percentNextTitle">% requirement for next title</option> -->
+        </select>
+        <button id="btnFilter">Select</button>
+    </div>
     <!-- <button id="btnHideZeros">Спрятать нули</button> -->
 
     <br>

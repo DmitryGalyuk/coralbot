@@ -58,5 +58,14 @@ export default {
     "mastersOnly": "Masters only",
     "noOrdersXMonths": "No order last {0} months",
     "showFullStructure": "Show full structure",
-    "parseFailedMessage": "Can't read file. Check if the language of the file is correct. If an error occurs, please write to me at {0}"
+    "parseFailedMessage": "Can't read file. Check if the language of the file is correct. If an error occurs, please write to me at {0}",
+    
+    "spanFilterFrom": "Show people with ",
+    "spanFilterTo": "to",
+    "pointsPersonal": "personal volume points",
+    "pointsGroup": "group volume points",
+    "pointsOverall": "structure volume points",
+    "btnFilter": "Search",
+    "percentNextTitle": "% requirement for next title",
+
 };

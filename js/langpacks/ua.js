@@ -59,5 +59,13 @@ export default {
     "mastersOnly": "Тільки майстри",
     "noOrdersXMonths": "Без закупівель до {0} міс",
     "showFullStructure": "Показати всю структуру",
-    "parseFailedMessage": "Не можу прочитати файл. Перевірте, чи правильно вибрано мову файлу. Якщо з'являється помилка, напишіть мені, будь ласка на {0}"
+    "parseFailedMessage": "Не можу прочитати файл. Перевірте, чи правильно вибрано мову файлу. Якщо з'являється помилка, напишіть мені, будь ласка на {0}",
+
+    "spanFilterFrom": "Показати людей з особистим обсягом від ",
+    "spanFilterTo": "до",
+    "pointsPersonal": "особистими балами обсягу",
+    "pointsGroup": "балами групового обсягу",
+    "pointsOverall": "балів у всій структурі",
+    "btnFilter": "Знайти",
+    "percentNextTitle": "% requirement for next title",
 };
