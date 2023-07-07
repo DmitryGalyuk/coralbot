@@ -54,6 +54,7 @@ export default {
     "longPlatinumMaster": "Платиновий Майстер",
 
     // ui strings
+    "cardMonthNoOrder": "Без закупівель: {0} місяців",
     "selectFile": "Вибрати файл звіту",
     "directorsOnly": "Тільки Директора",
     "mastersOnly": "Тільки майстри",

@@ -53,6 +53,7 @@ export default {
     "longPlatinumMaster": "Maestro di platino",
 
     // ui strings
+    "cardMonthNoOrder": "Nessun acquisto: {0} mesi",
     "selectFile": "Seleziona il file di rapporto",
     "directorsOnly": "Solo Direttori",
     "mastersOnly": "Solo maestri",

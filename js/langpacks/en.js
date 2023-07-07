@@ -53,6 +53,7 @@ export default {
     "longPlatinumMaster": "Platinum Master",
 
     // ui strings
+    "cardMonthNoOrder": "No orders: {0} months",
     "selectFile": "Select the report file",
     "directorsOnly": "Directors only",
     "mastersOnly": "Masters only",

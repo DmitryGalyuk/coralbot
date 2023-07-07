@@ -1,5 +1,8 @@
 import Member from "./member.js";
 import * as utils from './utils.js'
+import { getTranslator } from "./translator.js";
+
+const T = await getTranslator();
 
 export default class Renderer {
     constructor(flowchartId, mindmapId, breadcrumbsId) {
@@ -88,7 +91,7 @@ export default class Renderer {
             let card = `${parentLink}${m.id}["<i class="${m.titleObject?.icon}"></i>${title}<b>${nameLink}</b><br>`;
             card += `${m.overallstructuretotal.toFixed(0)} / ${m.grouptotal.toFixed(0)} / ${m.personalvolume}`;
             if (m.monthNoVolume > 0) {
-                card += `<br>Без закупок: ${m.monthNoVolume} мес`
+                card += `<br>${T.cardMonthNoOrder(m.monthNoVolume)}`;
             }
             card += `"]\n`;
             if (cardNum > 0) {

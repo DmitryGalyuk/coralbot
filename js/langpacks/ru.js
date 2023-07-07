@@ -53,6 +53,7 @@ export default {
     "longPlatinumMaster": "Платиновый Мастер",
 
     // ui strings
+    "cardMonthNoOrder": "Без закупок: {0} мес",
     "selectFile": "Выбрать файл отчёта",
     "directorsOnly": "Только Директора",
     "mastersOnly": "Только Мастера",
