@@ -90,15 +90,9 @@ async function parseUploaded() {
 }
 
 function translate() {
-    document.getElementById("spanSelectFile").textContent = T.selectFile;
-    document.getElementById("btnDirectorsOnly").textContent = T.directorsOnly;
-    // document.getElementById("btnMastersOnly").textContent = T.mastersOnly;
+    T.translatePage();
+
     document.getElementById("btnNoOrders").textContent = T.noOrdersXMonths(3);
-    document.getElementById("btnNoFilter").textContent = T.showFullStructure;
-    
-    document.getElementById("spanFilterFrom").textContent = T.spanFilterFrom;
-    document.getElementById("spanFilterTo").textContent = T.spanFilterTo;
-    document.getElementById("btnFilter").textContent = T.btnFilter;
     for (let opt of document.getElementById("selectFilterType").options) {
         opt.text = T[opt.value];
     }

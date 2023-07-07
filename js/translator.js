@@ -81,6 +81,20 @@ class Translator {
     get availableLanguages() {
         return this.languages;
     }
+
+    async translatePage() {
+        if (!this.controlResource) {
+            let response = await fetch("/js/langpacks/labels.json");
+            this.controlResource = await response.json();
+        }
+        let T = await Translator.getInstance();
+        for (let item of this.controlResource) {
+            let el = document.getElementById(item.ctrlId);
+            if (!el) continue;
+            el[item.ctrlProp] = T[item.resId];
+        }
+
+    }
 }
 
 export function getTranslator() {
