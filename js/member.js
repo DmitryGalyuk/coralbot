@@ -263,12 +263,13 @@ export default class Member {
 
     static clone(root) {
         let nodeslist = Member.flattenTree(root);
-        nodeslist.forEach(n=>n.children=[]);
+        nodeslist[0].parent = nodeslist[0].parentId = undefined;
+        nodeslist.forEach(n=>{n.children=[]; n.notFilterOut=undefined;});
         Member._buildChildParentRelationships(nodeslist);
         return nodeslist[0];
     }
 
-    static query(root, nodePredicate, parentPredicate = ()=>true) {
+    static query(root, nodePredicate = ()=>true, parentPredicate = ()=>true) {
         // if (!root || !nodePredicate || typeof nodePredicate !== "function") return null;
         if (!parentPredicate(root)) return null;
 
@@ -286,8 +287,8 @@ export default class Member {
                 while (!parentPredicate(parent)) {
                     parent = parent.parent;
                 }
+                parent.notFilterOut = true;
                 if (parent !== node.parent) {
-                    parent.notFilterOut = true;
                     parent.children.push(node);
                     let i = node.parent.children.findIndex(c=>c.id==node.id);
                     node.parent.children.splice(i, 1);

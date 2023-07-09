@@ -56,7 +56,7 @@ export default class Renderer {
                         }
                         event.preventDefault();
                         location.hash = "#"+id;
-                        that.renderData(that.dataRoot.findChild(id));
+                        // that.renderData(that.dataRoot.findChild(id));
                         return;
                     }
                     elem = elem.parentElement;
@@ -64,12 +64,12 @@ export default class Renderer {
             }
 
             // Check if the clicked element is a link with a hash
-            if (event.target.tagName === 'A' && event.target.hash) {
-                event.preventDefault(); // Prevent the default action
-                let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
-                let node = that.dataRoot.findChild(hash);
-                that.renderData(node);
-            }
+            // if (event.target.tagName === 'A' && event.target.hash) {
+            //     event.preventDefault(); // Prevent the default action
+            //     let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
+            //     let node = that.dataRoot.findChild(hash);
+            //     that.renderData(node);
+            // }
         });
     }
 
@@ -77,7 +77,7 @@ export default class Renderer {
         if (!node) return;
         
         this.renderMermaidFlow(document.getElementById(this.flowchartId), node);
-        this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), node);
+        this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), this.dataRoot, node);
         this.renderMermaidMindmap(document.getElementById(this.mindmapId), node);
 
     };
@@ -119,8 +119,8 @@ export default class Renderer {
 
 
 
-    renderBreadcrumbs(targetElement, currentNode) {
-        let n = currentNode;
+    renderBreadcrumbs(targetElement, root, currentNode) {
+        let n = root.findChild(currentNode.id);
         let breadcrumbs = [];
         while (n) {
             let icon = "";

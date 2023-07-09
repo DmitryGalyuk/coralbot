@@ -10,8 +10,12 @@ a {
     color: red;
 }
 
-.filter input[type=number] {
+form input[type=number] {
     width: 5em;
+}
+
+form div {
+    padding: 0.1em;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,10 +30,6 @@ a {
 }
 i {
     vertical-align: middle;
-}
-
-button {
-    margin: 1em;
 }
 
 #mindmap i {

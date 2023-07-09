@@ -6,6 +6,7 @@ import { getTranslator } from "/js/translator.js";
 
 
 let root = undefined;
+let branch = undefined;
 let renderer = new Renderer("diagram", "mm", "breadcrumbs");
 const T = await getTranslator();
 
@@ -36,35 +37,88 @@ async function initTranslation() {
     });
 }
 
-function filter() {
-    let from = document.getElementById("filterFrom").value || 0;
-    let to = document.getElementById("filterTo").value || Infinity;
-    let filterType = document.getElementById("selectFilterType").value;
-
-    if (filterType.startsWith("points")) {
-        let property = filterType == "pointsPersonal" ? "personalvolume"
-            : filterType == "pointsGroup" ? "grouptotal"
-            : filterType == "pointsOverall" ? "overallstructuretotal" : undefined;
-
-        renderer.renderData( Member.query(root, n => {
-            return from <= n[property] && n[property] <= to;
-        }, p => p.isDirector()));
+function branchChange(event) {
+    event.preventDefault(); // Prevent the default action
+    if (event.newURL.indexOf("#")) {
+        let hash = event.newURL.substring(event.newURL.indexOf("#")+1); // Get the hash and remove the '#'
+        if (hash !== "") {
+            branch = root.findChild(hash);
+            // branch.parentId = undefined;
+            // branch.parent = undefined;
+        }
     }
+    else {
+        branch = root;
+    }
+    renderer.currentBranch = branch;
+    renderer.renderData(branch);
+}
+
+function filter() {
+    let filterMonths = document.getElementById("filterMonths").checked;
+    let filterPoints = document.getElementById("filterPoints").checked;
+    let filterDirectorsOnly = document.getElementById("filterDirectorsOnly").checked;
+    let filterParentDirectors = document.getElementById("filterParentDirectors").checked;
+
+    let parentPredicate = ()=>true;
+
+    if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors) {
+        renderer.renderData(branch);
+        return;
+    }
+
+    let filteredTree = Member.query(branch);
+
+    if (filterParentDirectors) {
+        parentPredicate = p=>p.isDirector();
+        filteredTree = Member.query(filteredTree, n=>true, p=>p.isDirector());
+    }
+
+    if (filterDirectorsOnly) {
+        filteredTree = Member.query(filteredTree, n=>n.isDirector(), p=>p.isDirector());
+    }
+
+
+    if (filterMonths) {
+        let monthsFrom = document.getElementById("filterMonthsFrom").value || 0;
+        let monthsTo = document.getElementById("filterMonthsTo").value || Infinity;
+    
+        filteredTree = Member.query(filteredTree, 
+            n => monthsFrom <= n.monthNoVolume && n.monthNoVolume <= monthsTo,
+            parentPredicate)
+    }
+
+    if (filterPoints) {
+        let pointsFrom = document.getElementById("filterPointsFrom").value || 0;
+        let pointsTo = document.getElementById("filterPointsTo").value || Infinity;
+        let pointsFilterType = document.getElementById("selectFilterPointsType").value;
+        let property = pointsFilterType == "pointsPersonal" ? "personalvolume"
+            : pointsFilterType == "pointsGroup" ? "grouptotal"
+            : pointsFilterType == "pointsOverall" ? "overallstructuretotal" : undefined;
+
+        filteredTree =  Member.query(filteredTree, n => {
+                return pointsFrom <= n[property] && n[property] <= pointsTo;
+            },
+            parentPredicate);
+    }
+    renderer.renderData(filteredTree);    
+}
+function resetFilter() {
+    let checkboxes = document.querySelectorAll("form input[type=checkbox]");
+    checkboxes.forEach(c=>c.checked=false);
+    renderer.renderData(branch);
 }
 
 function assignEventHandlers() {
-    document.getElementById("excelFile").addEventListener('change', parseUploaded);
-    
-    document.getElementById("btnDirectorsOnly").addEventListener("click", () =>
-        renderer.renderData(Member.query(root, n => n.isDirector(), p => p.isDirector())));
-    // document.getElementById("btnMastersOnly").addEventListener("click", ()=>
-    //     renderer.renderData( Member.query(root, n=>n.isMaster(), p=>p.isMaster())));
-    document.getElementById("btnNoOrders").addEventListener("click", () =>
-        renderer.renderData(Member.query(root, n => 1 < n.monthNoVolume && n.monthNoVolume < 4, p => p.isDirector())));
-    document.getElementById("btnNoFilter").addEventListener("click", () =>
-        renderer.renderData(root));
+    window.addEventListener("hashchange", branchChange);
 
-    document.getElementById("btnFilter").addEventListener("click", filter);
+    document.getElementById("excelFile").addEventListener('change', parseUploaded);
+    document.getElementById("btnNoFilter").addEventListener('click', resetFilter);
+
+    let controls = document.querySelectorAll("form input, form select, form button");
+    for (let ctrl of controls){
+        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", filter);
+    }
     
 }
 
@@ -77,7 +131,7 @@ async function parseUploaded() {
     let parser;
     try {
         parser = new ReportParses(file, lang);
-        root = await parser.parseExcel();
+        root = branch = await parser.parseExcel();
     }
     catch {
         document.querySelector('#excelFile').value = null;
@@ -85,6 +139,7 @@ async function parseUploaded() {
         return;
     }
     renderer.dataRoot = root;
+    renderer.currentBranch = root;
 
     renderer.renderData(root);
 }
@@ -93,12 +148,7 @@ function translate() {
     T.translatePage();
 
     document.getElementById("btnNoOrders").textContent = T.noOrdersXMonths(3);
-    for (let opt of document.getElementById("selectFilterType").options) {
+    for (let opt of document.getElementById("selectFilterPointsType").options) {
         opt.text = T[opt.value];
     }
-
-
-    // document.getElementById("").textContent = T.;
-
-
 }
