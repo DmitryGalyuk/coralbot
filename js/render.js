@@ -56,20 +56,12 @@ export default class Renderer {
                         }
                         event.preventDefault();
                         location.hash = "#"+id;
-                        // that.renderData(that.dataRoot.findChild(id));
                         return;
                     }
                     elem = elem.parentElement;
                 }
             }
 
-            // Check if the clicked element is a link with a hash
-            // if (event.target.tagName === 'A' && event.target.hash) {
-            //     event.preventDefault(); // Prevent the default action
-            //     let hash = parseInt(event.target.hash.substring(1)); // Get the hash and remove the '#'
-            //     let node = that.dataRoot.findChild(hash);
-            //     that.renderData(node);
-            // }
         });
     }
 

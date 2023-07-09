@@ -57,7 +57,7 @@ export default {
     "selectFile": "Seleziona il file di rapporto",
     "directorsOnly": "Solo Direttori",
     "mastersOnly": "Solo maestri",
-    "noOrdersXMonths": "Nessun acquisto fino a {0} mesi",
+    "noOrdersXMonths": "Nessun acquisto",
     "showFullStructure": "Mostra tutta la struttura",
     "parseFailedMessage": "Impossibile leggere il file. Controlla se la lingua del file è corretta. Se si verifica un errore, scrivimi a {0}",
 

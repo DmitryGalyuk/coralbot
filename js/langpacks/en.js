@@ -57,7 +57,7 @@ export default {
     "selectFile": "Select the report file",
     "directorsOnly": "Directors only",
     "mastersOnly": "Masters only",
-    "noOrdersXMonths": "No order last {0} months",
+    "noOrdersXMonths": "No orders",
     "showFullStructure": "Show full structure",
     "parseFailedMessage": "Can't read file. Check if the language of the file is correct. If an error occurs, please write to me at {0}",
     

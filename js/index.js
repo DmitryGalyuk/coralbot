@@ -147,7 +147,6 @@ async function parseUploaded() {
 function translate() {
     T.translatePage();
 
-    document.getElementById("btnNoOrders").textContent = T.noOrdersXMonths(3);
     for (let opt of document.getElementById("selectFilterPointsType").options) {
         opt.text = T[opt.value];
     }
