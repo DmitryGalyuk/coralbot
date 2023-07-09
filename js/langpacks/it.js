@@ -56,16 +56,23 @@ export default {
     "cardMonthNoOrder": "Nessun acquisto: {0} mesi",
     "selectFile": "Seleziona il file di rapporto",
     "directorsOnly": "Solo Direttori",
+    "groupUnderDirectors": "Raggruppa i consumatori per Direttori",
     "mastersOnly": "Solo maestri",
     "noOrdersXMonths": "Nessun acquisto",
     "showFullStructure": "Mostra tutta la struttura",
     "parseFailedMessage": "Impossibile leggere il file. Controlla se la lingua del file è corretta. Se si verifica un errore, scrivimi a {0}",
 
-    "spanFilterFrom": "Mostra le persone con un volume personale compreso tra ",
-    "spanFilterTo": "e",
+    "lblFrom": "dalle",
+    "lblTo": "alle",
+    "months": "mesi",
+
     "pointsPersonal": "punti di volume del personale",
     "pointsGroup": "gruppi di punti di volume",
     "pointsOverall": "punti nell'intera struttura",
     "btnFilter": "Trovare",
     "percentNextTitle": "% requirement for next title",
+
+    "spinnerReadingFile": "Leggendo il file...",
+    "spinnerDrawing": "Visualizzazione..."
+
 };

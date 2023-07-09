@@ -1,0 +1,50 @@
+body {
+    background-color: #EEE;
+    color: #444;
+}
+a {
+    color: #444;
+}
+
+.errorMessage {
+    color: red;
+}
+
+form input[type=number] {
+    width: 5em;
+}
+
+form div {
+    padding: 0.1em;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #444;
+        color: #EEE
+    }
+    a {
+        color: #999;
+    }
+    
+}
+
+i {
+    vertical-align: middle;
+}
+
+.icongold {
+    color: gold;
+}
+
+.iconsilver {
+    color: silver;
+}
+
+.iconblue {
+    color: skyblue;
+}
+
+.icongreen {
+    color: green;
+}

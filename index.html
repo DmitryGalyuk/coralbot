@@ -4,7 +4,6 @@
     <title>Coralometer</title>
     <meta charset="UTF-8">
 
-
     <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./img//favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./img//favicon-16x16.png">
@@ -17,6 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/spinner.css">
     <link rel="stylesheet" href="css/diagram.css">
 
     <script src="./js/index.js" type="module"></script>
@@ -26,43 +27,44 @@
     <div>
         <i class="fa-solid fa-language"></i>
         <select id="selectLang"></select> 
-        <span id="spanSelectFile"></span> <input type="file" id="excelFile" />
+        <span resId="selectFile"></span> <input type="file" id="excelFile" />
         <span id="spanParseFailed" class="errorMessage"></span>
     </div>
 
     <form id="filter">
-        <!-- <button id="btnMastersOnly">Masters Only</button> -->
+        <!-- <button id="btnMastersOnly" resId="mastersOnly">Masters Only</button> -->
         <div class="filterMonths">
             <input type="checkbox" id="filterMonths">
-            <label for="filterMonths" id="btnNoOrders">No purcases last 3 months</label>
+            <label for="filterMonths" resId="noOrdersXMonths">No purcases last 3 months</label>
+            <span resId="lblFrom">from</span>
             <input id="filterMonthsFrom" type="number" size="4">
-            <span id="spanFilterTo">to</span>
+            <span resId="lblTo">to</span>
             <input id="filterMonthsTo" type="number" size="4">
-            <span id="months">months</span>
+            <span resId="months">months</span>
         </div>
 
         <div class="filterPoints">
             <input type="checkbox" id="filterPoints">
-            <label for="filterPoints" id="spanFilterFrom">Show people with </label>
-            <input id="filterPointsFrom" type="number" size="4">
-            <span id="spanFilterTo">to</span>
-            <input id="filterPointsTo" type="number" size="4">
             <select id="selectFilterPointsType">
                 <option value="pointsPersonal">personal volume points</option>
                 <option value="pointsGroup">group volume points</option>
                 <option value="pointsOverall">structure volume points</option>
                 <!-- <option value="percentNextTitle">% requirement for next title</option> -->
             </select>
+            <span resId="lblFrom">from</span>
+            <input id="filterPointsFrom" type="number" size="4">
+            <span resId="lblTo">to</span>
+            <input id="filterPointsTo" type="number" size="4">
         </div>
         <div>
             <input type="checkbox" id="filterDirectorsOnly">
-            <label for="filterDirectorsOnly" id="lblDirectorsOnly">Directors only</label>
+            <label for="filterDirectorsOnly" resId="directorsOnly">Directors only</label>
             <input type="checkbox" id="filterParentDirectors">
-            <label for="filterParentDirectors" id="lblParentDirectors">Group consumers under Directors</label>
+            <label for="filterParentDirectors" resId="groupUnderDirectors">Group consumers under Directors</label>
         </div>
         <!-- <button id="btnHideZeros">Спрятать нули</button> -->
     </form>
-    <button id="btnNoFilter">Show whole structure</button>
+    <button id="btnNoFilter" resId="showFullStructure">Show whole structure</button>
     <br>
 
     <div id="noOrders"></div>

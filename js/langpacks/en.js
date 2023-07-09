@@ -56,17 +56,23 @@ export default {
     "cardMonthNoOrder": "No orders: {0} months",
     "selectFile": "Select the report file",
     "directorsOnly": "Directors only",
+    "groupUnderDirectors": "Group Consumers under Directors",
     "mastersOnly": "Masters only",
     "noOrdersXMonths": "No orders",
     "showFullStructure": "Show full structure",
     "parseFailedMessage": "Can't read file. Check if the language of the file is correct. If an error occurs, please write to me at {0}",
     
-    "spanFilterFrom": "Show people with ",
-    "spanFilterTo": "to",
+    "lblFrom": "from",
+    "lblTo": "to",
+    "months": "months",
+    
     "pointsPersonal": "personal volume points",
     "pointsGroup": "group volume points",
     "pointsOverall": "structure volume points",
     "btnFilter": "Search",
     "percentNextTitle": "% requirement for next title",
+
+    "spinnerReadingFile": "Reading the file...",
+    "spinnerDrawing": "Drawing..."
 
 };

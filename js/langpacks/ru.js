@@ -56,16 +56,22 @@ export default {
     "cardMonthNoOrder": "Без закупок: {0} мес",
     "selectFile": "Выбрать файл отчёта",
     "directorsOnly": "Только Директора",
+    "groupUnderDirectors": "Группировать Потребителей под Директорами",
     "mastersOnly": "Только Мастера",
     "noOrdersXMonths": "Без закупок",
     "showFullStructure": "Показать всю структуру",
     "parseFailedMessage": "Не могу прочитать файл. Проверьте, правильно ли выбран язык файла. Если ошибка появляется, напишите мне, пожалуйста на {0}",
     
-    "spanFilterFrom": "Показать людей с от ",
-    "spanFilterTo": "до",
+    "lblFrom": "от",
+    "lblTo": "до",
+    "months": "месяцев",
+
     "pointsPersonal": "баллов личного объёма",
     "pointsGroup": "баллов группового объёма",
     "pointsOverall": "баллов во всей структуре",
     "btnFilter": "Найти",
     "percentNextTitle": "% requirement for next title",
+
+    "spinnerReadingFile": "Читаю файл...",
+    "spinnerDrawing": "Прорисовываю..."
 };

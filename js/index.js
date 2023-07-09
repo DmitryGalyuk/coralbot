@@ -3,6 +3,7 @@ import Renderer from '/js/render.js'
 import Member from '/js/member.js'
 import { Settings } from '/js/utils.js'
 import { getTranslator } from "/js/translator.js";
+import Spinner from '/js/spinner.js';
 
 
 let root = undefined;
@@ -43,8 +44,6 @@ function branchChange(event) {
         let hash = event.newURL.substring(event.newURL.indexOf("#")+1); // Get the hash and remove the '#'
         if (hash !== "") {
             branch = root.findChild(hash);
-            // branch.parentId = undefined;
-            // branch.parent = undefined;
         }
     }
     else {
@@ -103,6 +102,7 @@ function filter() {
     }
     renderer.renderData(filteredTree);    
 }
+
 function resetFilter() {
     let checkboxes = document.querySelectorAll("form input[type=checkbox]");
     checkboxes.forEach(c=>c.checked=false);
@@ -123,6 +123,7 @@ function assignEventHandlers() {
 }
 
 async function parseUploaded() {
+    await Spinner.show(T.spinnerReadingFile);
     location.hash = "";
     document.getElementById("spanParseFailed").textContent = "";
 
@@ -134,6 +135,7 @@ async function parseUploaded() {
         root = branch = await parser.parseExcel();
     }
     catch {
+        Spinner.close();
         document.querySelector('#excelFile').value = null;
         document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
         return;
@@ -141,7 +143,9 @@ async function parseUploaded() {
     renderer.dataRoot = root;
     renderer.currentBranch = root;
 
-    renderer.renderData(root);
+    await Spinner.show(T.spinnerDrawing)
+    await renderer.renderData(root);
+    Spinner.close();
 }
 
 function translate() {

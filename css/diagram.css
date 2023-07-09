@@ -1,43 +1,8 @@
-body {
-    background-color: #EEE;
-    color: #444;
-}
-a {
-    color: #444;
-}
-
-.errorMessage {
-    color: red;
-}
-
-form input[type=number] {
-    width: 5em;
-}
-
-form div {
-    padding: 0.1em;
-}
-
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #444;
-        color: #EEE
-    }
-    a {
-        color: #999;
-    }
-    
-}
-i {
-    vertical-align: middle;
-}
-
 #mindmap i {
     font-size: 3em;
 }
 
-#mindmap tspan
-{
+#mindmap tspan {
     fill: black;
 }
 
@@ -45,8 +10,7 @@ i {
 #mindmap .SilverDirector tspan,
 #mindmap .GoldenDirector tspan,
 #mindmap .EmeraldDirector tspan,
-#mindmap .DiamondDirector tspan
-{
+#mindmap .DiamondDirector tspan {
     fill: black;
 }
 
@@ -54,16 +18,14 @@ i {
 #mindmap .SilverMaster tspan,
 #mindmap .DoubleSilverMaster tspan,
 #mindmap .GoldenMaster tspan,
-#mindmap .PlatinumMaster tspan
-{
+#mindmap .PlatinumMaster tspan {
     fill: black;
 }
 
 #mindmap .Consumer i,
 #mindmap .PremiumConsumer i,
 #mindmap .JuniorAssistant i,
-#mindmap .Assistant i
-{
+#mindmap .Assistant i {
     font-size: 1.5em;
 }
 
@@ -71,8 +33,7 @@ i {
 #mindmap .SilverDirector i,
 #mindmap .GoldenDirector i,
 #mindmap .EmeraldDirector i,
-#mindmap .DiamondDirector i
-{
+#mindmap .DiamondDirector i {
     font-size: 2em;
 }
 
@@ -80,8 +41,7 @@ i {
 #mindmap .SilverMaster i,
 #mindmap .DoubleSilverMaster i,
 #mindmap .GoldenMaster i,
-#mindmap .PlatinumMaster i
-{
+#mindmap .PlatinumMaster i {
     font-size: 3em;
 }
 
@@ -91,23 +51,6 @@ i {
 
 #mindmap .section-root tspan {
     fill: white;
-}
-
-
-.icongold {
-    color: gold;
-}
-
-.iconsilver {
-    color: silver;
-}
-
-.iconblue {
-    color: skyblue;
-}
-
-.icongreen {
-    color: green;
 }
 
 #mindmap {

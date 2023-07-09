@@ -1,0 +1,41 @@
+.spinnerDialog {
+    width: 15em;
+    height: 16em;
+    background-color: #FFF;
+    color: #444;
+}
+
+@media (prefers-color-scheme: dark) {
+  .spinnerDialog {
+      background-color: #444;
+      color: #FFF;
+  }
+}
+
+.spinnerDialog .spinnerAnimation {
+    border: 16px solid #AAA; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 12em;
+    height: 12em;
+    animation: spin 2s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1em;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .spinnerDialog .spinnerAnimation {
+      border: 16px solid #f3f3f3; /* Light grey */
+      border-top: 16px solid #3498db; /* Blue */
+    }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+.spinnerDialog .spinnerMessage {
+    text-align: center;
+}

@@ -1,6 +1,7 @@
 import Member from "./member.js";
 import * as utils from './utils.js'
 import { getTranslator } from "./translator.js";
+import Spinner from "./spinner.js";
 
 const T = await getTranslator();
 
@@ -10,6 +11,7 @@ export default class Renderer {
         this.flowchartId = flowchartId;
         this.mindmapId = mindmapId;
         this.breadcrumbsId = breadcrumbsId;
+
 
         this.dataRoot;
 
@@ -65,12 +67,16 @@ export default class Renderer {
         });
     }
 
-    renderData(node) {
+    async renderData(node) {
         if (!node) return;
         
-        this.renderMermaidFlow(document.getElementById(this.flowchartId), node);
-        this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), this.dataRoot, node);
-        this.renderMermaidMindmap(document.getElementById(this.mindmapId), node);
+        await Spinner.show(T.spinnerDrawing);
+        await Promise.all([
+            this.renderMermaidFlow(document.getElementById(this.flowchartId), node),
+            this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), this.dataRoot, node),
+            this.renderMermaidMindmap(document.getElementById(this.mindmapId), node)
+        ])
+        Spinner.close();
 
     };
 
@@ -230,7 +236,6 @@ export default class Renderer {
                 assignColors(c, level+1);
             }
         }
-        
         calcHueSpans(root);
         calcHueRanges(root);
         assignColors(root);

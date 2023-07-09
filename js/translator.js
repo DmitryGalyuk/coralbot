@@ -88,11 +88,20 @@ class Translator {
             this.controlResource = await response.json();
         }
         let T = await Translator.getInstance();
-        for (let item of this.controlResource) {
-            let el = document.getElementById(item.ctrlId);
-            if (!el) continue;
-            el[item.ctrlProp] = T[item.resId];
+        let controls = document.querySelectorAll("[resId]");
+
+        for (let ctrl of controls) {
+            ctrl.textContent = T[ctrl.getAttribute("resId")];
         }
+
+        // for (let item of this.controlResource) {
+        //     let el = document.getElementById(item.ctrlId);
+        //     if (!el) {
+        //         console.warn("Translation target not found: ", item);
+        //         continue;
+        //     }
+        //     el[item.ctrlProp] = T[item.resId];
+        // }
 
     }
 }

@@ -57,16 +57,22 @@ export default {
     "cardMonthNoOrder": "Без закупівель: {0} місяців",
     "selectFile": "Вибрати файл звіту",
     "directorsOnly": "Тільки Директора",
+    "groupUnderDirectors": "Групувати споживачів директорами",
     "mastersOnly": "Тільки майстри",
     "noOrdersXMonths": "Без закупівель",
     "showFullStructure": "Показати всю структуру",
     "parseFailedMessage": "Не можу прочитати файл. Перевірте, чи правильно вибрано мову файлу. Якщо з'являється помилка, напишіть мені, будь ласка на {0}",
 
-    "spanFilterFrom": "Показати людей з особистим обсягом від ",
-    "spanFilterTo": "до",
-    "pointsPersonal": "особистими балами обсягу",
-    "pointsGroup": "балами групового обсягу",
+    "lblFrom": "від",
+    "lblTo": "до",
+    "months": "місяців",
+
+    "pointsPersonal": "балів особистого обсягу",
+    "pointsGroup": "балів групового обсягу",
     "pointsOverall": "балів у всій структурі",
     "btnFilter": "Знайти",
     "percentNextTitle": "% requirement for next title",
+
+    "spinnerReadingFile": "Читання файлу...",
+    "spinnerDrawing": "Візуалізація..."
 };
