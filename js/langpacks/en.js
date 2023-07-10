@@ -73,6 +73,8 @@ export default {
     "percentNextTitle": "% requirement for next title",
 
     "spinnerReadingFile": "Reading the file...",
-    "spinnerDrawing": "Drawing..."
+    "spinnerDrawing": "Drawing...",
+
+    "filterUnpayedOrders": "Have unpayed orders"
 
 };

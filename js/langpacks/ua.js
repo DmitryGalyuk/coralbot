@@ -74,5 +74,7 @@ export default {
     "percentNextTitle": "% requirement for next title",
 
     "spinnerReadingFile": "Читання файлу...",
-    "spinnerDrawing": "Візуалізація..."
+    "spinnerDrawing": "Візуалізація...",
+
+    "filterUnpayedOrders": "Неоплачені замовлення"
 };

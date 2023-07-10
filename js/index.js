@@ -18,7 +18,26 @@ await (async function main() {
     assignEventHandlers();
 })();
 
+function assignEventHandlers() {
+    window.addEventListener("hashchange", branchChange);
 
+    document.getElementById("excelFile").addEventListener('change', parseUploaded);
+    document.getElementById("btnNoFilter").addEventListener('click', resetFilter);
+
+    let controls = document.querySelectorAll("form input, form select, form button");
+    for (let ctrl of controls){
+        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", filter);
+    }
+    
+}
+
+function translate() {
+    T.translatePage();
+
+    for (let opt of document.getElementById("selectFilterPointsType").options) {
+        opt.text = T[opt.value];
+    }
+}
 
 async function initTranslation() {
     let selectLang = document.getElementById("selectLang");
@@ -58,10 +77,11 @@ function filter() {
     let filterPoints = document.getElementById("filterPoints").checked;
     let filterDirectorsOnly = document.getElementById("filterDirectorsOnly").checked;
     let filterParentDirectors = document.getElementById("filterParentDirectors").checked;
+    let filterUnpayedOrders = document.getElementById("filterUnpayedOrders").checked;
 
     let parentPredicate = ()=>true;
 
-    if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors) {
+    if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors && !filterUnpayedOrders) {
         renderer.renderData(branch);
         return;
     }
@@ -75,6 +95,10 @@ function filter() {
 
     if (filterDirectorsOnly) {
         filteredTree = Member.query(filteredTree, n=>n.isDirector(), p=>p.isDirector());
+    }
+
+    if (filterUnpayedOrders) {
+        filteredTree = Member.query(filteredTree, n=>n.unpayedOrders>0);
     }
 
 
@@ -109,19 +133,6 @@ function resetFilter() {
     renderer.renderData(branch);
 }
 
-function assignEventHandlers() {
-    window.addEventListener("hashchange", branchChange);
-
-    document.getElementById("excelFile").addEventListener('change', parseUploaded);
-    document.getElementById("btnNoFilter").addEventListener('click', resetFilter);
-
-    let controls = document.querySelectorAll("form input, form select, form button");
-    for (let ctrl of controls){
-        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", filter);
-    }
-    
-}
-
 async function parseUploaded() {
     await Spinner.show(T.spinnerReadingFile);
     location.hash = "";
@@ -146,12 +157,4 @@ async function parseUploaded() {
     await Spinner.show(T.spinnerDrawing)
     await renderer.renderData(root);
     Spinner.close();
-}
-
-function translate() {
-    T.translatePage();
-
-    for (let opt of document.getElementById("selectFilterPointsType").options) {
-        opt.text = T[opt.value];
-    }
 }

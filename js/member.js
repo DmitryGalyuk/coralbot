@@ -47,6 +47,7 @@ export default class Member {
         this.text = this.name = row['name'];
         this.rawTitle = row['rawtitle'];
         this.personalvolume = typeof row['personalvolume'] === "number" ? row['personalvolume'] : 0;
+        this.unpayedOrders = row['unpayedOrders'];
         this.nso = row['nso'];
         this.maxzr = row['maxzr'];
         this.monthNoVolume = typeof row['monthNoVolume'] === "number" ? row['monthNoVolume'] : 0;
