@@ -88,7 +88,7 @@ export default class Renderer {
     
             let card = `${parentLink}${m.id}["<i class="${m.titleObject?.icon}"></i>${title}<b>${nameLink}</b><br>`;
 
-            if (m.unpayedOrders?.trim()) card += `${T.cardUnpayedOrders}: ${m.unpayedOrders}\n`;
+            if (m.unpayedOrders) card += `${T.cardUnpayedOrders}: ${m.unpayedOrders}\n`;
             if (m.personalvolume) card += `${T.cardPersonalVolume}: ${m.personalvolume}\n`;
             if (m.grouptotal) card += `${T.cardGrouptotal}: ${m.grouptotal.toFixed(0)}\n`;
             if (m.overallstructuretotal) card += `${T.cardOverallstructuretotal}: ${m.overallstructuretotal.toFixed(0)}\n`;
