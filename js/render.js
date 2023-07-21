@@ -92,7 +92,6 @@ export default class Renderer {
             if (m.personalvolume) card += `${T.cardPersonalVolume}: ${m.personalvolume}\n`;
             if (m.grouptotal) card += `${T.cardGrouptotal}: ${m.grouptotal.toFixed(0)}\n`;
             if (m.overallstructuretotal) card += `${T.cardOverallstructuretotal}: ${m.overallstructuretotal.toFixed(0)}\n`;
-            if (m.nso) card += `\n${T.cardnso}: ${m.nso}\n`;
 
             if (m.monthNoVolume > 0) card += `\n${T.cardMonthNoOrder(m.monthNoVolume)}\n`;
 
