@@ -72,7 +72,8 @@ function branchChange(event) {
     renderer.renderData(branch);
 }
 
-function filter() {
+async function filter() {
+    await Spinner.show(T.spinnerCalculating);
     let filterMonths = document.getElementById("filterMonths").checked;
     let filterPoints = document.getElementById("filterPoints").checked;
     let filterDirectorsOnly = document.getElementById("filterDirectorsOnly").checked;
@@ -124,7 +125,9 @@ function filter() {
             },
             parentPredicate);
     }
-    renderer.renderData(filteredTree);    
+    await Spinner.show(T.spinnerDrawing);
+    await renderer.renderData(filteredTree);    
+    Spinner.close();
 }
 
 function resetFilter() {
@@ -144,17 +147,17 @@ async function parseUploaded() {
     try {
         parser = new ReportParses(file, lang);
         root = branch = await parser.parseExcel();
+        renderer.dataRoot = root;
+        renderer.currentBranch = root;
+
+        await Spinner.show(T.spinnerDrawing);
+        await renderer.renderData(root);
     }
-    catch {
-        Spinner.close();
+    catch (e) {
+        console.error(e);
         document.querySelector('#excelFile').value = null;
         document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
-        return;
     }
-    renderer.dataRoot = root;
-    renderer.currentBranch = root;
 
-    await Spinner.show(T.spinnerDrawing)
-    await renderer.renderData(root);
     Spinner.close();
 }

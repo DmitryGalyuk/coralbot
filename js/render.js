@@ -87,10 +87,15 @@ export default class Renderer {
             let title = m.title ? m.title + "<br>" : "";
     
             let card = `${parentLink}${m.id}["<i class="${m.titleObject?.icon}"></i>${title}<b>${nameLink}</b><br>`;
-            card += `${m.overallstructuretotal.toFixed(0)} / ${m.grouptotal.toFixed(0)} / ${m.personalvolume}`;
-            if (m.monthNoVolume > 0) {
-                card += `<br>${T.cardMonthNoOrder(m.monthNoVolume)}`;
-            }
+
+            if (m.unpayedOrders?.trim()) card += `${T.cardUnpayedOrders}: ${m.unpayedOrders}\n`;
+            if (m.personalvolume) card += `${T.cardPersonalVolume}: ${m.personalvolume}\n`;
+            if (m.grouptotal) card += `${T.cardGrouptotal}: ${m.grouptotal.toFixed(0)}\n`;
+            if (m.overallstructuretotal) card += `${T.cardOverallstructuretotal}: ${m.overallstructuretotal.toFixed(0)}\n`;
+            if (m.nso) card += `\n${T.cardnso}: ${m.nso}\n`;
+
+            if (m.monthNoVolume > 0) card += `\n${T.cardMonthNoOrder(m.monthNoVolume)}\n`;
+
             card += `"]\n`;
             if (cardNum > 0) {
                 card += `linkStyle ${cardNum - 1} stroke-width:${linkWidth > 0 ? linkWidth : 1}px;\n`;
@@ -138,8 +143,8 @@ export default class Renderer {
 
         function renderNode(n, level) {
             result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.title}\n`);
-            result.push(`${'\t'.repeat(level)}${n.name}\n`);
-            result.push(`${'\t'.repeat(level)}${n.overallstructuretotal.toFixed(0)} / ${n.grouptotal.toFixed(0)} / ${n.personalvolume})\n`);
+            result.push(`${'\t'.repeat(level)}${n.name})\n`);
+            // result.push(`${'\t'.repeat(level)}${n.overallstructuretotal.toFixed(0)} / ${n.grouptotal.toFixed(0)} / ${n.personalvolume})\n`);
             if(n.titleObject?.icon) {
                 result.push(`${'\t'.repeat(level)}::icon(${n.titleObject.icon})\n`);
             }

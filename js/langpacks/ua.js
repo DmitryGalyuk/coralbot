@@ -55,6 +55,12 @@ export default {
 
     // ui strings
     "cardMonthNoOrder": "Без закупівель: {0} місяців",
+    "cardUnpayedOrders" : "Неоплачені замовлення",
+    "cardPersonalVolume" : "Особистий обсяг",
+    "cardGrouptotal" : "Груповий обсяг",
+    "cardOverallstructuretotal" : "Обсяг структури",
+    "cardnso" : "Накопичувальний обсяг",
+
     "selectFile": "Вибрати файл звіту",
     "directorsOnly": "Тільки Директора",
     "groupUnderDirectors": "Групувати споживачів директорами",
@@ -75,6 +81,7 @@ export default {
 
     "spinnerReadingFile": "Читання файлу...",
     "spinnerDrawing": "Візуалізація...",
+    "spinnerCalculating": "Обчислення...",
 
     "filterUnpayedOrders": "Неоплачені замовлення"
 };

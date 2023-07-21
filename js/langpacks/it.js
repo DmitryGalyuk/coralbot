@@ -54,6 +54,12 @@ export default {
 
     // ui strings
     "cardMonthNoOrder": "Nessun acquisto: {0} mesi",
+    "cardUnpaidOrders": "Ordini non pagati",
+    "cardPersonalVolume": "Volume personale",
+    "cardGrouptotal": "Volume del gruppo",
+    "cardOverallstructuretotal": "CardOverallstructuretotal",
+    "cardnso": "Volume cumulativo",
+    
     "selectFile": "Seleziona il file di rapporto",
     "directorsOnly": "Solo Direttori",
     "groupUnderDirectors": "Raggruppa i consumatori per Direttori",
@@ -74,6 +80,7 @@ export default {
 
     "spinnerReadingFile": "Leggendo il file...",
     "spinnerDrawing": "Visualizzazione...",
+    "spinnerCalculating": "Calcolo...",
 
     "filterUnpayedOrders": "Ordini non pagati"
 

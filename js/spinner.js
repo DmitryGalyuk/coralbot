@@ -19,7 +19,7 @@ export default class Spinner {
         if (!this.div.open) {
             this.div.showModal();
         }
-        await new Promise(r => setTimeout(r, 0));
+        await new Promise(r => requestAnimationFrame(r));
     }
 
     static close() {

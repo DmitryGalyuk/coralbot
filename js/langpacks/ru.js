@@ -54,13 +54,19 @@ export default {
 
     // ui strings
     "cardMonthNoOrder": "Без закупок: {0} мес",
+    "cardUnpayedOrders" : "Неоплаченные заказы",
+    "cardPersonalVolume" : "Личный объём",
+    "cardGrouptotal" : "Групповой объём",
+    "cardOverallstructuretotal" : "Объём структуры",
+    "cardnso" : "Накопительный объём",
+
     "selectFile": "Выбрать файл отчёта",
     "directorsOnly": "Только Директора",
     "groupUnderDirectors": "Группировать Потребителей под Директорами",
     "mastersOnly": "Только Мастера",
     "noOrdersXMonths": "Без закупок",
     "showFullStructure": "Показать всю структуру",
-    "parseFailedMessage": "Не могу прочитать файл. Проверьте, правильно ли выбран язык файла. Если ошибка появляется, напишите мне, пожалуйста на {0}",
+    "parseFailedMessage": "Не могу прочитать файл. Проверьте, правильно ли выбран язык файла. Если ошибка появляется, напишите мне, пожалуйста, на {0}",
     
     "lblFrom": "от",
     "lblTo": "до",
@@ -74,6 +80,7 @@ export default {
 
     "spinnerReadingFile": "Читаю файл...",
     "spinnerDrawing": "Прорисовываю...",
+    "spinnerCalculating": "Просчитываю...",
 
     "filterUnpayedOrders": "Неоплаченные заказы"
 };
