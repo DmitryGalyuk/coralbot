@@ -13,13 +13,13 @@ export default class Spinner {
 
     }
 
-    static async show(message="") {
+    static show(message="") {
         this.msg.textContent = message;
         this.div.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
         if (!this.div.open) {
             this.div.showModal();
         }
-        await new Promise(r => requestAnimationFrame(r));
+        return new Promise(r => requestAnimationFrame(r));
     }
 
     static close() {

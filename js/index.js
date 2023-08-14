@@ -16,13 +16,22 @@ await (async function main() {
     translate();
 
     assignEventHandlers();
+
+    if (window.location.search == "?sample") {
+        sampleData();
+    }
 })();
 
-function assignEventHandlers() {
-    window.addEventListener("hashchange", branchChange);
+function sampleData() {
+    fetch("/sample-en.xlsx").then(r=>r.blob()).then(blob => parseUploaded(blob));
+}
 
-    document.getElementById("excelFile").addEventListener('change', parseUploaded);
-    document.getElementById("btnNoFilter").addEventListener('click', resetFilter);
+function assignEventHandlers() {
+    // window.addEventListener("hashchange", branchChange);
+    window.addEventListener("hashchange", async (e) => await branchChange(e));
+
+    document.getElementById("excelFile").addEventListener('change', fileChanged);
+    document.getElementById("btnNoFilter").addEventListener('click', async (e) => resetFilter(e));
 
     let controls = document.querySelectorAll("form input, form select, form button");
     for (let ctrl of controls){
@@ -57,7 +66,7 @@ async function initTranslation() {
     });
 }
 
-function branchChange(event) {
+async function branchChange(event) {
     event.preventDefault(); // Prevent the default action
     if (event.newURL.indexOf("#")) {
         let hash = event.newURL.substring(event.newURL.indexOf("#")+1); // Get the hash and remove the '#'
@@ -69,7 +78,9 @@ function branchChange(event) {
         branch = root;
     }
     renderer.currentBranch = branch;
-    renderer.renderData(branch);
+    await Spinner.show(T.spinnerDrawing);
+    await renderer.renderData(branch);
+    Spinner.close();
 }
 
 async function filter() {
@@ -130,34 +141,44 @@ async function filter() {
     Spinner.close();
 }
 
-function resetFilter() {
+async function resetFilter() {
     let checkboxes = document.querySelectorAll("form input[type=checkbox]");
     checkboxes.forEach(c=>c.checked=false);
-    renderer.renderData(branch);
+    
+    await Spinner.show(T.spinnerDrawing);
+    await renderer.renderData(branch);    
+    Spinner.close();
 }
 
-async function parseUploaded() {
+function fileChanged() {
+    parseUploaded(document.querySelector('#excelFile').files[0]);
+}
+
+async function parseUploaded(file) {
     await Spinner.show(T.spinnerReadingFile);
     location.hash = "";
     document.getElementById("spanParseFailed").textContent = "";
 
-    let lang = Settings.language;
-    const file = document.querySelector('#excelFile').files[0];
     let parser;
-    try {
-        parser = new ReportParses(file, lang);
-        root = branch = await parser.parseExcel();
-        renderer.dataRoot = root;
-        renderer.currentBranch = root;
+    const langQueue = [Settings.language,  ...T.languages.filter(l=>l.code!=Settings.language).map(l=>l.code)];
+    for (let lang of langQueue) {
+        try {
+            await T.use(lang);
+            parser = new ReportParses(file, lang);
+            root = branch = await parser.parseExcel();
+            renderer.dataRoot = root;
+            renderer.currentBranch = root;
 
-        await Spinner.show(T.spinnerDrawing);
-        await renderer.renderData(root);
+            await Spinner.show(T.spinnerDrawing);
+            await renderer.renderData(root);
+            return;
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
-    catch (e) {
-        console.error(e);
-        document.querySelector('#excelFile').value = null;
-        document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
-    }
+    document.querySelector('#excelFile').value = null;
+    document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
 
     Spinner.close();
 }
