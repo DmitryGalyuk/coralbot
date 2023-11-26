@@ -175,6 +175,7 @@ async function parseUploaded(file) {
         }
         catch (e) {
             console.error(e);
+            Spinner.close();
         }
     }
     document.querySelector('#excelFile').value = null;
