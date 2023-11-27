@@ -8,7 +8,7 @@ import Spinner from '/js/spinner.js';
 
 let root = undefined;
 let branch = undefined;
-let renderer = new Renderer("diagram", "mm", "breadcrumbs");
+let renderer = new Renderer("diagram", "mm", "breadcrumbs", "orgchart");
 const T = await getTranslator();
 
 await (async function main() {
@@ -79,7 +79,7 @@ async function branchChange(event) {
     }
     renderer.currentBranch = branch;
     await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(branch);
+    await renderer.renderData(root, branch);
     Spinner.close();
 }
 
@@ -94,7 +94,7 @@ async function filter() {
     let parentPredicate = ()=>true;
 
     if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors && !filterUnpayedOrders) {
-        renderer.renderData(branch);
+        renderer.renderData(root, branch);
         return;
     }
 
@@ -137,7 +137,7 @@ async function filter() {
             parentPredicate);
     }
     await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(filteredTree);    
+    await renderer.renderData(root, filteredTree);    
     Spinner.close();
 }
 
@@ -146,7 +146,7 @@ async function resetFilter() {
     checkboxes.forEach(c=>c.checked=false);
     
     await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(branch);    
+    await renderer.renderData(root, branch);    
     Spinner.close();
 }
 
@@ -166,11 +166,9 @@ async function parseUploaded(file) {
             await T.use(lang);
             parser = new ReportParses(file, lang);
             root = branch = await parser.parseExcel();
-            renderer.dataRoot = root;
-            renderer.currentBranch = root;
 
             await Spinner.show(T.spinnerDrawing);
-            await renderer.renderData(root);
+            await renderer.renderData(root, root);
             return;
         }
         catch (e) {
