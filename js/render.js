@@ -2,6 +2,7 @@ import Member from "./member.js";
 import * as utils from './utils.js'
 import { getTranslator } from "./translator.js";
 import Spinner from "./spinner.js";
+import Breadcrumbs from "./breadcrumbs.js"
 
 const T = await getTranslator();
 
@@ -10,8 +11,9 @@ export default class Renderer {
         this.linkMaxWidth = 50;
         this.flowchartId = flowchartId;
         this.mindmapId = mindmapId;
-        this.breadcrumbsId = breadcrumbsId;
         this.orgchartId = orgchartId;
+
+        this.breadcrumbs = new Breadcrumbs(document.getElementById(breadcrumbsId));
 
         let dark = false;
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -71,7 +73,7 @@ export default class Renderer {
         await Spinner.show(T.spinnerDrawing);
         await Promise.all([
             this.renderMermaidFlow(document.getElementById(this.flowchartId), activeBranch),
-            this.renderBreadcrumbs(document.getElementById(this.breadcrumbsId), root, activeBranch),
+            this.breadcrumbs.render(root, activeBranch),
             this.renderMermaidMindmap(document.getElementById(this.mindmapId), activeBranch),
             // this.renderOrgchart(document.getElementById(this.orgchartId), root)
         ])
@@ -193,20 +195,7 @@ export default class Renderer {
 
 
 
-    renderBreadcrumbs(targetElement, root, currentNode) {
-        let n = root.findChild(currentNode.id);
-        let breadcrumbs = [];
-        while (n) {
-            let icon = "";
-            if (n.titleObject?.icon) {
-                icon = `<i class="${n.titleObject.icon}"></i> `;
-            }
-            breadcrumbs.push(`<a class="breadcrumb" href="#${n.id}">${icon}${n.name}</a>`);
-            n = n.parent;
-        }
-        let result = breadcrumbs.reverse().join(" -- ");
-        targetElement.innerHTML = result;
-    }
+
 
 
     async renderMermaidMindmap(targetElement, root) {
