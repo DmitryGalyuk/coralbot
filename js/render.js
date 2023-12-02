@@ -3,6 +3,7 @@ import * as utils from './utils.js'
 import Spinner from "./spinner.js";
 import Breadcrumbs from "./breadcrumbs.js";
 import FlowDiagram from "./flowDiagram.js";
+import Mindmap from "./mindmap.js";
 
 import { getTranslator } from "./translator.js";
 const T = await getTranslator();
@@ -10,12 +11,11 @@ const T = await getTranslator();
 export default class Renderer {
     constructor(flowchartId, mindmapId, breadcrumbsId, orgchartId) {
         this.linkMaxWidth = 50;
-        this.flowchartId = flowchartId;
-        this.mindmapId = mindmapId;
         this.orgchartId = orgchartId;
 
         this.breadcrumbs = new Breadcrumbs(document.getElementById(breadcrumbsId));
         this.flowDiagram = new FlowDiagram(document.getElementById(flowchartId), mermaid);
+        this.mindmap = new Mindmap(document.getElementById(mindmapId));
 
         let dark = false;
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -40,33 +40,8 @@ export default class Renderer {
             }
         });
 
-        let that = this;
         // Add a click event listener to the document
-        document.addEventListener('click', function (event) {
-            if( event.target.tagName === "tspan") {
-                let mindmapdiv = document.getElementById(that.mindmapId);
-                if (!mindmapdiv.contains(event.target) ){
-                    return;
-                }
-                let elem = event.target;
-                while (elem && mindmapdiv.contains(elem)) {
-                    if (elem.classList.contains("mindmap-node")) {
-                        let id;
-                        for (let c of elem.classList) {
-                            if( c.startsWith("n")) {
-                                id = c.substring(1);
-                                break;
-                            }
-                        }
-                        event.preventDefault();
-                        location.hash = "#"+id;
-                        return;
-                    }
-                    elem = elem.parentElement;
-                }
-            }
-
-        });
+        document.addEventListener('click', this.mindmap.getClickHandler());
     }
 
     async renderData(root, activeBranch) {
@@ -76,7 +51,7 @@ export default class Renderer {
         await Promise.all([
             this.flowDiagram.render(activeBranch),
             this.breadcrumbs.render(root, activeBranch),
-            this.renderMermaidMindmap(document.getElementById(this.mindmapId), activeBranch),
+            this.mindmap.render(activeBranch),
             // this.renderOrgchart(document.getElementById(this.orgchartId), root)
         ])
         .catch(e => { 
@@ -157,120 +132,7 @@ export default class Renderer {
     }
 
 
-    async renderMermaidMindmap(targetElement, root) {
-        let result = ["mindmap\n"];
-
-        function renderNode(n, level) {
-            result.push(`${'\t'.repeat(level)}${level==1?"root":""}(${n.title}\n`);
-            result.push(`${'\t'.repeat(level)}${n.name}\n`);
-            result.push(`${'\t'.repeat(level)}${n.overallstructuretotal.toFixed(0)} / ${n.grouptotal.toFixed(0)} / ${n.personalvolume})\n`);
-            if(n.titleObject?.icon) {
-                result.push(`${'\t'.repeat(level)}::icon(${n.titleObject.icon})\n`);
-            }
-            result.push(`${'\t'.repeat(level)}:::n${n.id} ${n.titleObject?.name ?? ""}\n`);
-        }
-        function renderStyles(n, level) {
-            document.styleSheets[0].insertRule(`.n${n.id} {fill: hsl(${n.hue}, ${n.saturation}%, ${n.light}%);}`);
-        }
-
-        function calcHueSpans(node, level=0) {
-            let parentWithSpan = node;
-            if (level==0) {
-                node.hueSpan = 360;
-                parentWithSpan = node;
-            }
-
-            while (!parentWithSpan.hueSpan) parentWithSpan = parentWithSpan.parent
-
-            for (let child of node.children) {
-                if (child.isDirector()) {
-                    child.hueSpan = Math.ceil( 0.8 * utils.mapValue(
-                        child.overallstructuretotal,
-                        [0, parentWithSpan.overallstructuretotal],
-                        [0, parentWithSpan.hueSpan]
-                    ));
-                }
-            }
-            
-            for (let child of node.children){
-                calcHueSpans(child, level+1);
-            }
-        }
-
-        function calcHueRanges(node, level=0) {
-            let parentWithRange = node;
-            if (level==0) {
-                node.hueRange = [0, node.hueSpan];
-                parentWithRange = node;
-            }
-
-            while (!parentWithRange.hueRange) parentWithRange = parentWithRange.parent
-
-            let directorChildren = [];
-            function findChildDirectors(n) {
-                for (let c of n.children) {
-                    if (c.isDirector()) {
-                        directorChildren.push(c);
-                        continue;
-                    }
-                    findChildDirectors(c);
-                }
-            }
-            findChildDirectors(node);
-
-            let even = false;
-            let range = parentWithRange.hueRange.slice();
-            for (let child of directorChildren) {
-                if (even) {
-                    child.hueRange = [range[0], range[0]+child.hueSpan];
-                    range[0] += child.hueSpan;
-                } else {
-                    child.hueRange = [range[1]-child.hueSpan, range[1]];
-                    range[1] -= child.hueSpan;
-                }
-                even = !even;
-            }
-
-            for (let director of directorChildren) {
-                calcHueRanges(director, level+1);
-            }
-        }
-
-        function assignColors(node, level=0) {
-            if (!node.parent || level==0) {
-                node.hue = 0;
-                node.saturation = 0;
-                node.light = 0;
-            }
-            else if(node.isDirector()) {
-                node.hue = Math.ceil( node.hueRange[0] + (node.hueRange[1] - node.hueRange[0])/2 );
-                node.saturation = utils.mapValue(
-                    node.titleObject.order, 
-                    [Member.directorOrder, Math.max(...Member.order.map(o=>o.order))],
-                    [50, 100]);
-                node.light = 50;
-            }
-            else {
-                node.hue = node.parent.hue;
-                node.saturation = node.parent.saturation / 2;
-                node.light = 60;
-            }
-
-            for (let c of node.children) {
-                assignColors(c, level+1);
-            }
-        }
-        calcHueSpans(root);
-        calcHueRanges(root);
-        assignColors(root);
-        utils.traverse(root, renderNode, 1);
-
-        let svgCode = await mermaid.render('mindmap', result.join(''))
-        targetElement.innerHTML = svgCode.svg;
-        
-        targetElement.querySelector("style").remove();
-        utils.traverse(root, renderStyles, 1);
-    }
+    
 
     renderNoOrders(targetElement, root) {
         let result = ["<ul>"];
