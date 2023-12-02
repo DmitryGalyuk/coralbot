@@ -1,9 +1,10 @@
 import Member from "./member.js";
 import * as utils from './utils.js'
-import { getTranslator } from "./translator.js";
 import Spinner from "./spinner.js";
-import Breadcrumbs from "./breadcrumbs.js"
+import Breadcrumbs from "./breadcrumbs.js";
+import FlowDiagram from "./flowDiagram.js";
 
+import { getTranslator } from "./translator.js";
 const T = await getTranslator();
 
 export default class Renderer {
@@ -14,6 +15,7 @@ export default class Renderer {
         this.orgchartId = orgchartId;
 
         this.breadcrumbs = new Breadcrumbs(document.getElementById(breadcrumbsId));
+        this.flowDiagram = new FlowDiagram(document.getElementById(flowchartId), mermaid);
 
         let dark = false;
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -72,7 +74,7 @@ export default class Renderer {
         
         await Spinner.show(T.spinnerDrawing);
         await Promise.all([
-            this.renderMermaidFlow(document.getElementById(this.flowchartId), activeBranch),
+            this.flowDiagram.render(activeBranch),
             this.breadcrumbs.render(root, activeBranch),
             this.renderMermaidMindmap(document.getElementById(this.mindmapId), activeBranch),
             // this.renderOrgchart(document.getElementById(this.orgchartId), root)
@@ -153,49 +155,6 @@ export default class Renderer {
 
           chart.container(templateNode).data(flat).render()//.expandAll().fit();
     }
-
-    async renderMermaidFlow(templateNode, node) {
-        function renderMermaidCard(m, cardNum, linkWidth) {
-            let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
-            let nameLink = `<a href="#${m.id}">${m.name}</a>`;
-            let title = m.title ? m.title + "<br>" : "";
-    
-            let card = `${parentLink}${m.id}["<i class="${m.titleObject?.icon}"></i>${title}<b>${nameLink}</b><br>`;
-
-            if (m.unpayedOrders) card += `${T.cardUnpayedOrders}: ${m.unpayedOrders}\n`;
-            if (m.personalvolume) card += `${T.cardPersonalVolume}: ${m.personalvolume}\n`;
-            if (m.grouptotal) card += `${T.cardGrouptotal}: ${m.grouptotal.toFixed(0)}\n`;
-            if (m.overallstructuretotal) card += `${T.cardOverallstructuretotal}: ${m.overallstructuretotal.toFixed(0)}\n`;
-
-            if (m.monthNoVolume > 0) card += `\n${T.cardMonthNoOrder(m.monthNoVolume)}\n`;
-
-            card += `"]\n`;
-            if (cardNum > 0) {
-                card += `linkStyle ${cardNum - 1} stroke-width:${linkWidth > 0 ? linkWidth : 1}px;\n`;
-            }
-    
-            return card;
-        }
-
-
-        let data = Member.flattenTree(node);
-        data[0].parent = data[0].parentId = undefined;
-
-        let mermaidStr = 'graph TD;\n';
-
-        for (let i = 0; i < data.length; i++) {
-            let width = Math.ceil(data[i].overallstructuretotal * this.linkMaxWidth / data[0].overallstructuretotal);
-            mermaidStr += renderMermaidCard(data[i], i, width);
-        }
-        let svgCode = await mermaid.render('flow', mermaidStr);
-        templateNode.innerHTML = svgCode.svg;
-
-        return mermaidStr;
-    }
-
-
-
-
 
 
     async renderMermaidMindmap(targetElement, root) {
