@@ -31,11 +31,11 @@ function assignEventHandlers() {
     window.addEventListener("hashchange", async (e) => await branchChange(e));
 
     document.getElementById("excelFile").addEventListener('change', fileChanged);
-    document.getElementById("btnNoFilter").addEventListener('click', async (e) => resetFilter(e));
+    document.getElementById("btnNoFilter").addEventListener('click', async (e) => {resetFilter(); await render();});
 
     let controls = document.querySelectorAll("form input, form select, form button");
     for (let ctrl of controls){
-        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", filter);
+        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", async (e) => await render());
     }
     
 }
@@ -66,6 +66,13 @@ async function initTranslation() {
     });
 }
 
+async function render() {
+    let filteredNodes = filter();
+    await Spinner.show(T.spinnerDrawing);
+    await renderer.renderData(root, filteredNodes);
+    Spinner.close();
+}
+
 async function branchChange(event) {
     event.preventDefault(); // Prevent the default action
     if (event.newURL.indexOf("#")) {
@@ -78,13 +85,10 @@ async function branchChange(event) {
         branch = root;
     }
     renderer.currentBranch = branch;
-    await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(root, branch);
-    Spinner.close();
+    render();
 }
 
-async function filter() {
-    await Spinner.show(T.spinnerCalculating);
+function filter() {
     let filterMonths = document.getElementById("filterMonths").checked;
     let filterPoints = document.getElementById("filterPoints").checked;
     let filterDirectorsOnly = document.getElementById("filterDirectorsOnly").checked;
@@ -94,8 +98,7 @@ async function filter() {
     let parentPredicate = ()=>true;
 
     if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors && !filterUnpayedOrders) {
-        renderer.renderData(root, branch);
-        return;
+        return branch;
     }
 
     let filteredTree = Member.query(branch);
@@ -106,7 +109,8 @@ async function filter() {
     }
 
     if (filterDirectorsOnly) {
-        filteredTree = Member.query(filteredTree, n=>n.isDirector(), p=>p.isDirector());
+        // filteredTree = Member.query(filteredTree, n=>n.isDirector(), p=>p.isDirector());
+        filteredTree = Member.query(filteredTree, n=>n.isDirector(), p=>true);
     }
 
     if (filterUnpayedOrders) {
@@ -136,18 +140,12 @@ async function filter() {
             },
             parentPredicate);
     }
-    await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(root, filteredTree);    
-    Spinner.close();
+    return filteredTree;
 }
 
-async function resetFilter() {
+function resetFilter() {
     let checkboxes = document.querySelectorAll("form input[type=checkbox]");
     checkboxes.forEach(c=>c.checked=false);
-    
-    await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(root, branch);    
-    Spinner.close();
 }
 
 function fileChanged() {
@@ -167,17 +165,13 @@ async function parseUploaded(file) {
             parser = new ReportParses(file, lang);
             root = branch = await parser.parseExcel();
 
-            await Spinner.show(T.spinnerDrawing);
-            await renderer.renderData(root, root);
+            render();
             return;
         }
         catch (e) {
             console.error(e);
-            Spinner.close();
+            document.querySelector('#excelFile').value = null;
+            document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
         }
     }
-    document.querySelector('#excelFile').value = null;
-    document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
-
-    Spinner.close();
 }
