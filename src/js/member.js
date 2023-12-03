@@ -260,13 +260,14 @@ export default class Member {
         return flatList;
     }
 
-    static cloneTree(root) {
+    static cloneTree(node) {
         let resultlist = [];
-        let nodeslist = utils.flattenTree(root);
-        nodeslist[0].parent = nodeslist[0].parentId = undefined;
+        let nodeslist = utils.flattenTree(node);
         nodeslist.forEach(n=>{resultlist.push(new Member(n))});
-        Member._buildChildParentRelationships(nodeslist);
-        return nodeslist[0];
+        // resultlist[0].parent = resultlist[0].parentId = undefined;
+        Member._buildChildParentRelationships(resultlist);
+        Member.calculate_group_totals()
+        return resultlist[0];
     }
 
     static query(root, nodePredicate = ()=>true, parentPredicate = ()=>true) {
@@ -274,8 +275,7 @@ export default class Member {
         if (!parentPredicate(root)) return null;
 
         let rootCopy = Member.cloneTree(root);
-        let nodeslist = []; 
-        utils.traverse(rootCopy, n=>nodeslist.push(n));
+        let nodeslist = utils.flattenTree(rootCopy);
 
         let node = nodeslist.pop();
         while (node) {

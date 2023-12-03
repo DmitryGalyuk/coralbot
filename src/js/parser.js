@@ -1,6 +1,16 @@
 import Member from './member.js';
 import { getTranslator } from "./translator.js";
 
+let ExcelJS;
+if (typeof window !== 'undefined' && window.ExcelJS) {
+    ExcelJS = window.ExcelJS; // Use the global ExcelJS in the browser
+} else {
+    // Dynamic import for Node.js environment
+    import('exceljs').then((module) => {
+        ExcelJS = module.default;
+    });
+}
+
 const T = await getTranslator();
 
 export default class ReportParses {

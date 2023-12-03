@@ -20,12 +20,11 @@ class Translator {
             translator.currentLanguage = navigator.language.split('-')[0];
 
             try {
-                const response = await fetch('/js/langpacks/languages.json');
-                const data = await response.json();
-                translator.languages = data.languages;
+                const response = await import('./langpacks/languages.js');
+                translator.languages = response.languages;
 
                 // Check if user's language exists in available languages
-                const userLangExists = data.languages.some(lang => lang.code === translator.currentLanguage);
+                const userLangExists = translator.languages.some(lang => lang.code === translator.currentLanguage);
 
                 // If user's language doesn't exist, fall back to English
                 if (!userLangExists) {
@@ -58,7 +57,7 @@ class Translator {
 
         // Fetch the language pack and store it
         try {
-            const langData = await import(`/js/langpacks/${language}.js`);
+            const langData = await import(`./langpacks/${language}.js`);
             this.langPack[language] = langData.default;
         } catch (err) {
             console.error(err);

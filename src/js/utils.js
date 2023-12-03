@@ -24,12 +24,12 @@ export function mapValue(value, fromRange, toRange) {
 
 export class Settings {
     static _settings = (() => {
-        const settings = localStorage.getItem('settings');
+        const settings = window.localStorage.getItem('settings');
         return settings ? JSON.parse(settings) : {};
     })();
 
     static _save() {
-        localStorage.setItem('settings', JSON.stringify(this._settings));
+        window.localStorage.setItem('settings', JSON.stringify(this._settings));
     }
 
     static get language() {
@@ -47,4 +47,4 @@ export function flattenTree(root) {
     // utils.traverse(root, n=>nodeslist.push(Object.assign(new Member(), n)));
     traverse(root, n=>nodeslist.push(n));
     return nodeslist;
-}
+}   
