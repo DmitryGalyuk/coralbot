@@ -1,5 +1,6 @@
-import Member from "./member.js";
+import * as utils from "./utils.js"
 import { getTranslator } from "./translator.js";
+import Member from "./member.js";
 const T = await getTranslator();
 
 
@@ -11,8 +12,7 @@ export default class FlowDiagram {
     }
 
     async render(node) {
-        let data = Member.flattenTree(node);
-        data[0].parent = data[0].parentId = undefined;
+        let data = utils.flattenTree(node);
 
         let mermaidStr = 'graph TD;\n';
 
@@ -27,7 +27,7 @@ export default class FlowDiagram {
     }
 
     static renderMermaidCard(m, cardNum, linkWidth) {
-        let parentLink = (m.parentId && m.id) ? `${m.parentId} --> ` : "";
+        let parentLink = (cardNum>0 && m.parentId && m.id) ? `${m.parentId} --> ` : "";
         let nameLink = `<a href="#${m.id}">${m.name}</a>`;
         let title = m.title ? m.title + "<br>" : "";
 

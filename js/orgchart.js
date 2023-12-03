@@ -16,6 +16,9 @@ export default class OrgChart {
         // .nodeWidth((d) => {
         //   return 220;
         // })
+        // .svgHeight(d=>"100%")
+        // .svgWidth(d=>"100%")
+        // .compact(false)
         .childrenMargin((d) => 50)
         .compactMarginBetween((d) => 25)
         .compactMarginPair((d) => 50)
@@ -31,10 +34,11 @@ export default class OrgChart {
         .linkUpdate(function (d, i, arr) {
             d3.select(this)
             .attr('stroke', (d) =>
-            d.data._upToTheRootHighlighted ? '#152785' : '#E4E2E9'
+            // d.data._upToTheRootHighlighted ? '#152785' : '#E4E2E9'
+            d.data._upToTheRootHighlighted ? '#ff0000' : '#E4E2E9'
             )
             .attr('stroke-width', (d) =>
-            d.data._upToTheRootHighlighted ? 5 : 1
+            d.data._upToTheRootHighlighted ? 15 : 1
             );
             
             if (d.data._upToTheRootHighlighted) {

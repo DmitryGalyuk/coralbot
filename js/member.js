@@ -4,11 +4,15 @@ import * as utils from './utils.js';
 import { getTranslator } from "./translator.js";
 
 export default class Member {
-    constructor() {
+    constructor(copyFrom) {
+        if (copyFrom instanceof Member) {
+            Object.assign(this, copyFrom);
+        }
+
         this.parent = null;
         this.children = [];
         this.grouptotal = undefined;
-
+        this.notFilterOut = undefined;
     }
 
     static loadedLanguages = [];
@@ -215,12 +219,6 @@ export default class Member {
         return root;
     }
 
-    static flattenTree(root) {
-        let nodeslist = []; 
-        utils.traverse(root, n=>nodeslist.push(Object.assign(new Member(), n)));
-        return nodeslist;
-    }
-
     static _buildChildParentRelationships(members) {
         let idToMemberMap = new Map();
 
@@ -262,10 +260,11 @@ export default class Member {
         return flatList;
     }
 
-    static clone(root) {
-        let nodeslist = Member.flattenTree(root);
+    static cloneTree(root) {
+        let resultlist = [];
+        let nodeslist = utils.flattenTree(root);
         nodeslist[0].parent = nodeslist[0].parentId = undefined;
-        nodeslist.forEach(n=>{n.children=[]; n.notFilterOut=undefined;});
+        nodeslist.forEach(n=>{resultlist.push(new Member(n))});
         Member._buildChildParentRelationships(nodeslist);
         return nodeslist[0];
     }
@@ -274,7 +273,7 @@ export default class Member {
         // if (!root || !nodePredicate || typeof nodePredicate !== "function") return null;
         if (!parentPredicate(root)) return null;
 
-        let rootCopy = Member.clone(root);
+        let rootCopy = Member.cloneTree(root);
         let nodeslist = []; 
         utils.traverse(rootCopy, n=>nodeslist.push(n));
 

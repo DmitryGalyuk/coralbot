@@ -41,3 +41,10 @@ export class Settings {
         this._save();
     }
 }
+
+export function flattenTree(root) {
+    let nodeslist = []; 
+    // utils.traverse(root, n=>nodeslist.push(Object.assign(new Member(), n)));
+    traverse(root, n=>nodeslist.push(n));
+    return nodeslist;
+}
