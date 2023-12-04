@@ -24,8 +24,11 @@ test("parser returns Member instance", () => {
 
 test("cloneTree creates new objects", () => {
   let clone = Member.cloneTree(root);
-  expect(root.id == clone.id).toBeTruthy();
-  expect(root !== clone).toBeTruthy();
+  utils.traverse(clone, (c)=> {
+    let original = root.findChild(c.id);
+    expect(original.id == c.id).toBeTruthy();
+    expect(original !== c).toBeTruthy();
+  });  
 });
 
 test("cloneTree updates overallstructure total", () => {
