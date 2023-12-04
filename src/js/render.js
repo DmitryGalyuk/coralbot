@@ -48,6 +48,10 @@ export default class Renderer {
     async renderData(root, activeBranch) {
         if (!activeBranch) return;
         
+        utils.traverse(root, (n)=>{
+            n.children.sort((a,b)=>b.overallstructuretotal - a.overallstructuretotal)
+        });
+
         await Spinner.show(T.spinnerDrawing);
         await Promise.all([
             // this.flowDiagram.render(activeBranch),
