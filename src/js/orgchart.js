@@ -1,4 +1,5 @@
 import Member from "./member.js";
+import * as utils from "./utils.js"
 
 export default class OrgChart {
     constructor(templateNode) {
@@ -6,7 +7,7 @@ export default class OrgChart {
     }
 
     render(node) {
-        let flat = Member.flattenTree(node);
+        let flat = utils.flattenTree(node);
         let chart = new d3.OrgChart();
 
         chart.layoutBindings().top.linkY = (n) => n.y - 24;

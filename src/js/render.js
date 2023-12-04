@@ -50,10 +50,10 @@ export default class Renderer {
         
         await Spinner.show(T.spinnerDrawing);
         await Promise.all([
-            this.flowDiagram.render(activeBranch),
+            // this.flowDiagram.render(activeBranch),
             this.breadcrumbs.render(root, activeBranch),
             this.mindmap.render(activeBranch),
-            // this.orgchart.render(root)
+            this.orgchart.render(activeBranch)
         ])
         .catch(e => { 
             console.error(e);
