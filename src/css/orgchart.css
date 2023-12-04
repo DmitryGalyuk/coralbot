@@ -1,0 +1,47 @@
+.orgchartCard {
+    font-family: 'Inter', sans-serif;
+    position: absolute;
+    margin-top: -1px;
+    margin-left: -1px;
+    border-radius: 10px;
+    border: 1px solid #E4E2E9
+}
+
+.orgchartCardIconContainer {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    margin-top: -25px;
+    margin-left: 15px;
+    border-radius: 100px;
+    width: 50px;
+    height: 50px;
+}
+
+.orgchartCardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    /* margin-top: -20px; */
+    /* margin-left: 20px; */
+    border-radius: 100px;
+    width: 40px;
+    height: 40px;
+    font-size: 2em;
+}
+
+.orgchartCardName {
+    font-size: 15px;
+    color: #08011E;
+    margin-left: 20px;
+    margin-top: 32px
+}
+
+.orgchartCardTitle {
+    color: #716E7B;
+    margin-left: 20px;
+    margin-top: 3px;
+    font-size: 10px;
+}
