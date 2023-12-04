@@ -3,9 +3,7 @@ import Member from "../src/js/member"
 import ReportParses from "../src/js/parser"
 import ExcelJS from 'exceljs';
 import * as utils from "../src/js/utils"
-
 import fs from "fs";
-import exp from 'constants';
 
 let root = [];
 
