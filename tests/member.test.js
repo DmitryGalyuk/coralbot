@@ -41,8 +41,8 @@ test("cloneTree updates grouptotal total", () => {
   });
 });
 
-test("utils.flattenTree preserves same links", () => {
-  for (let n of utils.flattenTree(root)) {
+test("Member.flattenTree preserves same links", () => {
+  for (let n of Member.flattenTree(root)) {
     expect(n === root.findChild(n.id)).toBeTruthy();
   }
 });

@@ -1,5 +1,8 @@
-import Member from "./member.js";
 import * as utils from "./utils.js"
+import { getTranslator } from "./translator.js";
+import Member from "./member.js";
+const T = await getTranslator();
+
 
 export default class OrgChart {
   constructor(templateNode) {
@@ -7,7 +10,7 @@ export default class OrgChart {
   }
 
   render(node) {
-    let flat = utils.flattenTree(node);
+    let flat = Member.flattenTree(node);
     let chart = new d3.OrgChart();
 
     chart.layoutBindings().top.linkY = (n) => n.y - 24;
@@ -61,14 +64,20 @@ export default class OrgChart {
     static renderCard(d) {
       const color = '#FFFFFF';
       return `
-          <div class="orgchartCard" style="background-color:${color}; width:${d.width}px; height:${d.height}px;">
+          <div class="orgchartCard"
+            style="border-color:hsl(${d.data.hue}, ${d.data.saturation}%, ${d.data.light}%);background-color:${color}; width:${d.width}px; height:${d.height}px;">
               <div class="orgchartCardIconContainer" style="background-color:${color};"
               ><i class="orgchartCardIcon ${d.data.titleObject?.icon}"></i></div>
               
             <div style="color:#08011E;position:absolute;right:20px;top:17px;font-size:10px;"><i class="fas fa-ellipsis-h"></i></div>
 
-            <div class="orgchartCardName">${d.data.name} </div>
-            <div class="orgchartCardTitle">${d.data.fullTitle()} </div>
+            <div class="orgchartCardName">${d.data.name}</div>
+            <div class="orgchartCardTitle">${d.data.fullTitle()}</div>
+            <div>${d.data.unpayedOrders ? T.cardUnpayedOrders +": "+d.data.unpayedOrders:""}</div>
+            <div>${d.data.personalvolume ? T.cardPersonalVolume +": "+d.data.personalvolume:""}</div>
+            <div>${d.data.grouptotal ? T.cardGrouptotal +": "+d.data.grouptotal:""}</div>
+            <div>${d.data.overallstructuretotal ? T.cardOverallstructuretotal +": "+d.data.overallstructuretotal:""}</div>
+            <div>${d.data.monthNoVolume > 0 ? T.cardMonthNoOrder(d.data.monthNoVolume):""}</div>
           </div>`;
    }
 }

@@ -1,6 +1,5 @@
-import * as utils from "./utils.js"
-import { getTranslator } from "./translator.js";
 import Member from "./member.js";
+import { getTranslator } from "./translator.js";
 const T = await getTranslator();
 
 
@@ -12,7 +11,7 @@ export default class FlowDiagram {
     }
 
     async render(node) {
-        let data = utils.flattenTree(node);
+        let data = Member.flattenTree(node);
 
         let mermaidStr = 'graph TD;\n';
 

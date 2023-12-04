@@ -262,7 +262,7 @@ export default class Member {
 
     static cloneTree(node) {
         let resultlist = [];
-        let nodeslist = utils.flattenTree(node);
+        let nodeslist = Member.flattenTree(node);
         nodeslist.forEach(n=>{resultlist.push(new Member(n))});
         // resultlist[0].parent = resultlist[0].parentId = undefined;
         Member._buildChildParentRelationships(resultlist);
@@ -276,7 +276,7 @@ export default class Member {
         if (!parentPredicate(root)) return null;
 
         let rootCopy = Member.cloneTree(root);
-        let nodeslist = utils.flattenTree(rootCopy);
+        let nodeslist = Member.flattenTree(rootCopy);
 
         let node = nodeslist.pop();
         while (node) {
@@ -305,5 +305,12 @@ export default class Member {
         }
 
         return rootCopy;
+    }
+
+    static flattenTree(root) {
+        let nodeslist = []; 
+        // utils.traverse(root, n=>nodeslist.push(Object.assign(new Member(), n)));
+        utils.traverse(root, n=>nodeslist.push(n));
+        return nodeslist;
     }
 }
