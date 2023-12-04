@@ -32,26 +32,19 @@ test("cloneTree creates new objects", () => {
 });
 
 test("cloneTree updates overallstructure total", () => {
-  let clone = Member.cloneTree(root);
-  expect(root.overallstructuretotal == clone.overallstructuretotal).toBeTruthy();
-
-  let directors = Member.query(root, n=>n.isDirector());
-  utils.traverse(directors, (d)=>{
-    expect(clone.findChild(d.id).overallstructuretotal == d.overallstructuretotal).toBeTruthy();
+  utils.traverse(Member.cloneTree(root), (c)=>{
+    expect(c.overallstructure == root.findChild(c.id).overallstructure).toBeTruthy();
   });
 });
 
 test("cloneTree updates grouptotal total", () => {
-  let clone = Member.cloneTree(root);
-  expect(root.grouptotal == clone.grouptotal).toBeTruthy();
-
-  let directors = Member.query(root, n=>n.isDirector());
-  utils.traverse(directors, (d)=>{
-    expect(clone.findChild(d.id).grouptotal == d.grouptotal).toBeTruthy();
+  utils.traverse(Member.cloneTree(root), (c)=>{
+    expect(c.grouptotal == root.findChild(c.id).grouptotal).toBeTruthy();
   });
 });
 
 test("utils.flattenTree preserves same links", () => {
-  let flatten = utils.flattenTree(root);
-  expect(flatten[0] === root).toBeTruthy();
+  for (let n of utils.flattenTree(root)) {
+    expect(n === root.findChild(n.id)).toBeTruthy();
+  }
 });
