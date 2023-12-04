@@ -266,7 +266,8 @@ export default class Member {
         nodeslist.forEach(n=>{resultlist.push(new Member(n))});
         // resultlist[0].parent = resultlist[0].parentId = undefined;
         Member._buildChildParentRelationships(resultlist);
-        Member.calculate_group_totals()
+        resultlist[0].calculate_overallstructure_total();
+        Member.update_grouptotals_tree(resultlist[0]);
         return resultlist[0];
     }
 
