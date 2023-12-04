@@ -65,7 +65,8 @@ export default class OrgChart {
       const color = '#FFFFFF';
       return `
           <div class="orgchartCard"
-            style="border-color:hsl(${d.data.hue}, ${d.data.saturation}%, ${d.data.light}%);background-color:${color}; width:${d.width}px; height:${d.height}px;">
+            style="border-color:hsl(${d.data.hue}, ${d.data.saturation}%, ${d.data.light}%);
+              background-color:hsl(${d.data.hue}, ${d.data.saturation/5}%, ${d.data.light}%); width:${d.width}px; height:${d.height}px;">
               <div class="orgchartCardIconContainer" style="background-color:${color};"
               ><i class="orgchartCardIcon ${d.data.titleObject?.icon}"></i></div>
               
