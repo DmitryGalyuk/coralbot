@@ -20,8 +20,8 @@ export default class OrgChart {
       // .nodeWidth((d) => {
       //   return 220;
       // })
-      // .svgHeight(d=>"100%")
-      // .svgWidth(d=>"100%")
+      .svgHeight(d=>"100%")
+      .svgWidth(d=>"100%")
       // .compact(false)
       .childrenMargin((d) => 50)
       .compactMarginBetween((d) => 25)
@@ -66,7 +66,7 @@ export default class OrgChart {
       return `
           <div class="orgchartCard"
             style="border-color:hsl(${d.data.hue}, ${d.data.saturation}%, ${d.data.light}%);
-              background-color:hsl(${d.data.hue}, ${d.data.saturation/5}%, ${d.data.light}%); width:${d.width}px; height:${d.height}px;">
+              background-color:hsl(${d.data.hue}, ${d.data.saturation/5 }%, ${d.data.light}%); width:${d.width}px; height:${d.height}px;">
               <div class="orgchartCardIconContainer" style="background-color:${color};"
               ><i class="orgchartCardIcon ${d.data.titleObject?.icon}"></i></div>
               

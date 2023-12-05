@@ -50,13 +50,15 @@ function assignEventHandlers() {
         mapDialog.showModal();
     });
 
-    mapDialog.addEventListener('click', function(event) {
+    function mapDialogClose(event) {
         if(event.target === this) {
             this.close();
             mapIcon.appendChild(mapSvg);
             iconOverlay.style.display = 'block'; // Show overlay in icon
         }
-    });
+    }
+    mapDialog.addEventListener('click', mapDialogClose);
+    mapDialog.addEventListener('cancel', mapDialogClose);
 }
 
 function translate() {

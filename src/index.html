@@ -30,62 +30,64 @@
 </head>
 
 <body>
-    <div>
-        <i class="fa-solid fa-language"></i>
-        <select id="selectLang"></select> 
-        <span resId="selectFile"></span> <input type="file" id="excelFile" />
-        <span id="spanParseFailed" class="errorMessage"></span>
-    </div>
 
-    <form id="filter">
-        <!-- <button id="btnMastersOnly" resId="mastersOnly">Masters Only</button> -->
-        <div class="filterMonths">
-            <input type="checkbox" id="filterMonths">
-            <label for="filterMonths" resId="noOrdersXMonths">No purcases last 3 months</label>
-            <span resId="lblFrom">from</span>
-            <input id="filterMonthsFrom" type="number" size="4">
-            <span resId="lblTo">to</span>
-            <input id="filterMonthsTo" type="number" size="4">
-            <span resId="months">months</span>
-        </div>
-
-        <div class="filterPoints">
-            <input type="checkbox" id="filterPoints">
-            <select id="selectFilterPointsType">
-                <option value="pointsPersonal">personal volume points</option>
-                <option value="pointsGroup">group volume points</option>
-                <option value="pointsOverall">structure volume points</option>
-                <!-- <option value="percentNextTitle">% requirement for next title</option> -->
-            </select>
-            <span resId="lblFrom">from</span>
-            <input id="filterPointsFrom" type="number" size="4">
-            <span resId="lblTo">to</span>
-            <input id="filterPointsTo" type="number" size="4">
-        </div>
+    <div class="pageHeader">
         <div>
-            <input type="checkbox" id="filterUnpayedOrders">
-            <label for="filterUnpayedOrders" resId="filterUnpayedOrders">Have unpayed orders</label>
-            <input type="checkbox" id="filterDirectorsOnly">
-            <label for="filterDirectorsOnly" resId="directorsOnly">Directors only</label>
-            <input type="checkbox" id="filterParentDirectors">
-            <label for="filterParentDirectors" resId="groupUnderDirectors">Group consumers under Directors</label>
+            <i class="fa-solid fa-language"></i>
+            <select id="selectLang"></select> 
+            <span resId="selectFile"></span> <input type="file" id="excelFile" />
+            <span id="spanParseFailed" class="errorMessage"></span>
         </div>
-        <!-- <button id="btnHideZeros">Спрятать нули</button> -->
-    </form>
-    <button id="btnNoFilter" resId="showFullStructure">Show whole structure</button>
-    <br>
 
-    <br>
-    
-    <div id="mapIcon">
-        <div id="iconOverlay"></div>
-        <div id="mm"></div>
+        <form id="filter">
+            <!-- <button id="btnMastersOnly" resId="mastersOnly">Masters Only</button> -->
+            <div class="filterMonths">
+                <input type="checkbox" id="filterMonths">
+                <label for="filterMonths" resId="noOrdersXMonths">No purcases last 3 months</label>
+                <span resId="lblFrom">from</span>
+                <input id="filterMonthsFrom" type="number" size="4">
+                <span resId="lblTo">to</span>
+                <input id="filterMonthsTo" type="number" size="4">
+                <span resId="months">months</span>
+            </div>
+
+            <div class="filterPoints">
+                <input type="checkbox" id="filterPoints">
+                <select id="selectFilterPointsType">
+                    <option value="pointsPersonal">personal volume points</option>
+                    <option value="pointsGroup">group volume points</option>
+                    <option value="pointsOverall">structure volume points</option>
+                    <!-- <option value="percentNextTitle">% requirement for next title</option> -->
+                </select>
+                <span resId="lblFrom">from</span>
+                <input id="filterPointsFrom" type="number" size="4">
+                <span resId="lblTo">to</span>
+                <input id="filterPointsTo" type="number" size="4">
+            </div>
+            <div>
+                <input type="checkbox" id="filterUnpayedOrders">
+                <label for="filterUnpayedOrders" resId="filterUnpayedOrders">Have unpayed orders</label>
+                <input type="checkbox" id="filterDirectorsOnly">
+                <label for="filterDirectorsOnly" resId="directorsOnly">Directors only</label>
+                <input type="checkbox" id="filterParentDirectors">
+                <label for="filterParentDirectors" resId="groupUnderDirectors">Group consumers under Directors</label>
+            </div>
+            <!-- <button id="btnHideZeros">Спрятать нули</button> -->
+            <button id="btnNoFilter" resId="showFullStructure">Show whole structure</button>
+        </form>
+        <br>
+
+        <br>
+        
+        <div id="mapIcon">
+            <div id="iconOverlay"></div>
+            <div id="mm"></div>
+        </div>
+
+        <dialog id="mapDialog">
+            <div id="breadcrumbs"></div>
+        </dialog>
     </div>
-
-    <dialog id="mapDialog">
-        <div id="breadcrumbs"></div>
-    </dialog>
-
     <div id="orgchart"></div>
 
 </body>

@@ -32,6 +32,19 @@ form div {
     
 }
 
+body {
+display: flex;
+flex-direction: column;
+}
+
+#pageHeader {
+
+}
+
+#orgchart {
+    flex-grow: 1;
+}
+
 #mapIcon {
     position: fixed;
     top: 10px;
@@ -42,9 +55,13 @@ form div {
     z-index: 1000;
 }
 
-#mapIcon svg, #mapDialog svg {
+#mapIcon svg {
     width: 100%;
     height: 100%;
+}
+#mapDialog svg {
+    width: 100%;
+    height: 90%;
 }
 
 #mapIcon #iconOverlay {
