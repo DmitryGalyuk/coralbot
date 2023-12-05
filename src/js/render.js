@@ -52,18 +52,18 @@ export default class Renderer {
             n.children.sort((a,b)=>b.overallstructuretotal - a.overallstructuretotal)
         });
 
-        await Spinner.show(T.spinnerDrawing);
-        await Promise.all([
+        // await Spinner.show(T.spinnerDrawing);
+        // await Promise.all([
             // this.flowDiagram.render(activeBranch),
             this.breadcrumbs.render(root, activeBranch),
             this.mindmap.render(activeBranch),
-            this.orgchart.render(activeBranch)
-        ])
-        .catch(e => { 
-            console.error(e);
-            throw e; }
-        );
-        Spinner.close();
+            this.orgchart.render(root)
+        // ])
+        // .catch(e => { 
+        //     console.error(e);
+        //     throw e; }
+        // );
+        // Spinner.close();
 
     };
 }

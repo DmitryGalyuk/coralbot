@@ -1,0 +1,27 @@
+i {
+    vertical-align: middle;
+}
+
+.icongold {
+    color: gold;
+}
+
+.iconsilver {
+    color: silver;
+}
+
+.iconblue {
+    color: skyblue;
+}
+
+.icongreen {
+    color: green;
+}
+
+.fa-cart-shopping, .fa-cart-plus, .fa-graduation-cap {
+    font-size: smaller;
+}
+
+.fa-briefcase, .fa-gem, .fa-crown, .fa-chess-queen {
+    font-size: xx-large;
+}

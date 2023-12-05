@@ -1,6 +1,9 @@
 body {
     background-color: #EEE;
     color: #444;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 a {
     color: #444;
@@ -29,22 +32,39 @@ form div {
     
 }
 
-i {
-    vertical-align: middle;
+#mapIcon {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 10em; /* Size of the icon */
+    height: 10em;
+    cursor: pointer;
+    z-index: 1000;
 }
 
-.icongold {
-    color: gold;
+#mapIcon svg, #mapDialog svg {
+    width: 100%;
+    height: 100%;
 }
 
-.iconsilver {
-    color: silver;
+#mapIcon #iconOverlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: transparent; /* Invisible but clickable */
+    z-index: 10; /* Ensure it's above the SVG */
 }
 
-.iconblue {
-    color: skyblue;
+#mapDialog {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    height: 90%;
+    width: 90%;
 }
 
-.icongreen {
-    color: green;
+#mapDialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
 }

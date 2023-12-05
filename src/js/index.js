@@ -20,6 +20,7 @@ await (async function main() {
     if (window.location.search == "?sample") {
         sampleData();
     }
+    
 })();
 
 function sampleData() {
@@ -38,6 +39,24 @@ function assignEventHandlers() {
         ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", async (e) => await render());
     }
     
+    let mapIcon = document.getElementById("mapIcon");
+    let iconOverlay = document.getElementById("iconOverlay");
+    let mapDialog = document.getElementById("mapDialog");
+    let mapSvg = document.getElementById("mm");
+
+    mapIcon.addEventListener('click', function() {
+        mapDialog.appendChild(mapSvg);
+        iconOverlay.style.display = 'none'; // Hide overlay in modal
+        mapDialog.showModal();
+    });
+
+    mapDialog.addEventListener('click', function(event) {
+        if(event.target === this) {
+            this.close();
+            mapIcon.appendChild(mapSvg);
+            iconOverlay.style.display = 'block'; // Show overlay in icon
+        }
+    });
 }
 
 function translate() {
@@ -175,3 +194,4 @@ async function parseUploaded(file) {
         }
     }
 }
+

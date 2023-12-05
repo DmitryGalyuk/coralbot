@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/spinner.css">
     <link rel="stylesheet" href="css/diagram.css">
     <link rel="stylesheet" href="css/orgchart.css">
+    <link rel="stylesheet" href="css/icons.css">
 
     <script src="./js/index.js" type="module"></script>
 </head>
@@ -74,16 +75,18 @@
     <button id="btnNoFilter" resId="showFullStructure">Show whole structure</button>
     <br>
 
-    <div id="noOrders"></div>
-
-    <div id="breadcrumbs"></div>
     <br>
+    
+    <div id="mapIcon">
+        <div id="iconOverlay"></div>
+        <div id="mm"></div>
+    </div>
 
-    <div id="mm"></div>
+    <dialog id="mapDialog">
+        <div id="breadcrumbs"></div>
+    </dialog>
+
     <div id="orgchart"></div>
-    <div id="diagram"></div>
-
-
 
 </body>
 
