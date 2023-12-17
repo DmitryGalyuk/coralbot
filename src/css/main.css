@@ -29,6 +29,9 @@ form div {
     a {
         color: #999;
     }
+    #mapIcon {
+        background-color: #444;
+    }
     
 }
 
@@ -49,6 +52,8 @@ flex-direction: column;
     height: 10em;
     cursor: pointer;
     z-index: 1000;
+    border: 1px solid gray;
+    background-color: #EEE;
 }
 
 #mapIcon svg {
