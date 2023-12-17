@@ -21,23 +21,10 @@ form div {
     padding: 0.1em;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #444;
-        color: #EEE
-    }
-    a {
-        color: #999;
-    }
-    #mapIcon {
-        background-color: #444;
-    }
-    
-}
 
 body {
-display: flex;
-flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 #orgchart {
@@ -81,6 +68,7 @@ flex-direction: column;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     height: 90%;
     width: 90%;
+    background-color: #EEE;
 }
 
 #mapDialog::backdrop {
@@ -92,4 +80,21 @@ flex-direction: column;
     top: 10px; /* Adjust as needed */
     right: 10px; /* Adjust as needed */
     font-size: 1.5em;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #444;
+        color: #EEE
+    }
+    a {
+        color: #999;
+    }
+    #mapIcon {
+        background-color: #444;
+    }
+    #mapDialog {
+        background-color: #444;
+    }
+    
 }
