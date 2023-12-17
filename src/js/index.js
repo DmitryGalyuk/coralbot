@@ -8,7 +8,7 @@ import Spinner from '/js/spinner.js';
 
 let root = undefined;
 let branch = undefined;
-let renderer = new Renderer("diagram", "mm", "breadcrumbs", "orgchart");
+let renderer = new Renderer("mm", "breadcrumbs", "orgchart");
 const T = await getTranslator();
 
 await (async function main() {
@@ -28,8 +28,7 @@ function sampleData() {
 }
 
 function assignEventHandlers() {
-    // window.addEventListener("hashchange", branchChange);
-    window.addEventListener("hashchange", async (e) => await branchChange(e));
+        window.addEventListener("hashchange", async (e) => await branchChange(e));
 
     document.getElementById("excelFile").addEventListener('change', fileChanged);
     document.getElementById("btnNoFilter").addEventListener('click', async (e) => {resetFilter(); await render();});
@@ -43,8 +42,12 @@ function assignEventHandlers() {
     let iconOverlay = document.getElementById("iconOverlay");
     let mapDialog = document.getElementById("mapDialog");
     let mapSvg = document.getElementById("mm");
+    let breadcrumbsPanel = document.getElementById("breadcrumbsPanel");
+    let breadcrumbs = document.getElementById("breadcrumbs");
+    let mapCloseButton = document.getElementById("mapCloseButton");
 
     mapIcon.addEventListener('click', function() {
+        mapDialog.appendChild(breadcrumbs);
         mapDialog.appendChild(mapSvg);
         iconOverlay.style.display = 'none'; // Hide overlay in modal
         mapDialog.showModal();
@@ -52,13 +55,15 @@ function assignEventHandlers() {
 
     function mapDialogClose(event) {
         if(event.target === this) {
-            this.close();
+            mapDialog.close();
             mapIcon.appendChild(mapSvg);
+            breadcrumbsPanel.appendChild(breadcrumbs);
             iconOverlay.style.display = 'block'; // Show overlay in icon
         }
     }
     mapDialog.addEventListener('click', mapDialogClose);
     mapDialog.addEventListener('cancel', mapDialogClose);
+    mapCloseButton.addEventListener('click', mapDialogClose);
 }
 
 function translate() {
@@ -115,7 +120,7 @@ function filter() {
     let filterDirectorsOnly = document.getElementById("filterDirectorsOnly").checked;
     let filterParentDirectors = document.getElementById("filterParentDirectors").checked;
     let filterUnpayedOrders = document.getElementById("filterUnpayedOrders").checked;
-
+    
     let parentPredicate = ()=>true;
 
     if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors && !filterUnpayedOrders) {

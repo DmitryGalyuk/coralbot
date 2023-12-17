@@ -37,10 +37,6 @@ display: flex;
 flex-direction: column;
 }
 
-#pageHeader {
-
-}
-
 #orgchart {
     flex-grow: 1;
 }
@@ -84,4 +80,11 @@ flex-direction: column;
 
 #mapDialog::backdrop {
     background: rgba(0, 0, 0, 0.6);
+}
+
+#mapCloseButton {
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    font-size: 1.5em;
 }
