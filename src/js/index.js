@@ -8,7 +8,7 @@ import Spinner from '/js/spinner.js';
 
 let root = undefined;
 let branch = undefined;
-let renderer = new Renderer("mm", "breadcrumbs", "orgchart");
+let renderer = new Renderer();
 const T = await getTranslator();
 
 await (async function main() {
@@ -30,7 +30,7 @@ function sampleData() {
 function assignEventHandlers() {
         window.addEventListener("hashchange", async (e) => await branchChange(e));
 
-    document.getElementById("excelFile").addEventListener('change', fileChanged);
+    document.getElementById("excelFile").addEventListener('change', async (e) => { await fileChanged(); });
     document.getElementById("btnNoFilter").addEventListener('click', async (e) => {resetFilter(); await render();});
 
     let controls = document.querySelectorAll("form input, form select, form button");
@@ -174,8 +174,9 @@ function resetFilter() {
     checkboxes.forEach(c=>c.checked=false);
 }
 
-function fileChanged() {
-    parseUploaded(document.querySelector('#excelFile').files[0]);
+async function fileChanged() {
+    renderer = new Renderer();
+    await parseUploaded(document.querySelector('#excelFile').files[0]);
 }
 
 async function parseUploaded(file) {
@@ -196,9 +197,9 @@ async function parseUploaded(file) {
         }
         catch (e) {
             console.error(e);
-            document.querySelector('#excelFile').value = null;
-            document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
         }
     }
+    document.querySelector('#excelFile').value = null;
+    document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
 }
 

@@ -9,7 +9,7 @@ import { getTranslator } from "./translator.js";
 const T = await getTranslator();
 
 export default class Renderer {
-    constructor(mindmapId, breadcrumbsId, orgchartId) {
+    constructor(mindmapId = "mm", breadcrumbsId = "breadcrumbs", orgchartId = "orgchart") {
         this.linkMaxWidth = 50;
 
         this.breadcrumbs = new Breadcrumbs(document.getElementById(breadcrumbsId));

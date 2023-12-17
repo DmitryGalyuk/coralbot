@@ -1,19 +1,35 @@
 .orgchartCard {
     font-family: 'Inter', sans-serif;
-    /* position: absolute; */
     margin-top: -1px;
     margin-left: -1px;
     border-radius: 10px;
-    border: 2px solid
+}
+
+.orgchartCard > .header {
+    display: flex;
+    padding-top: 0.5em;
+    padding-left: 0.5em;
+}
+
+.orgchartCard > .header > .name {
+    flex-grow: 1;
+    margin-left: 1em;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.orgchartCard > .body {
+    padding-top: 0.5em;
+    padding-left: 1em;
 }
 
 .orgchartCardIconContainer {
     align-items: center;
     display: flex;
     justify-content: center;
-    /* position: absolute; */
-    margin-top: -25px;
-    margin-left: 15px;
+    /* margin-top: -25px;
+    margin-left: 15px; */
     border-radius: 100px;
     width: 50px;
     height: 50px;
@@ -23,9 +39,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* position: absolute; */
-    /* margin-top: -20px; */
-    /* margin-left: 20px; */
     border-radius: 100px;
     width: 40px;
     height: 40px;
@@ -33,15 +46,25 @@
 }
 
 .orgchartCardName {
-    font-size: 15px;
+    font-size: 1.5em;
     color: #08011E;
-    margin-left: 20px;
-    margin-top: 32px
+    /* margin-left: 2em; */
+}
+
+.rootNode .orgchartCardName {
+    color: gold;
 }
 
 .orgchartCardTitle {
-    color: #716E7B;
-    margin-left: 20px;
-    margin-top: 3px;
-    font-size: 10px;
+    color: #0a0a0c;
+    font-size: 1em;
+}
+
+.rootNode .orgchartCardTitle {
+    color: silver;
+}
+
+.node-foreign-object-div {
+    overflow-x: clip;
+    overflow-y: visible;
 }
