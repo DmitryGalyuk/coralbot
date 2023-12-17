@@ -192,7 +192,7 @@ async function parseUploaded(file) {
             parser = new ReportParses(file, lang);
             root = branch = await parser.parseExcel();
 
-            render();
+            await render();
             return;
         }
         catch (e) {
