@@ -1,3 +1,10 @@
 {
-    "liveServer.settings.root" : "/src"
+    "liveServer.settings.root": "/src",
+    "azureFunctions.deploySubpath": "azurefunc",
+    "azureFunctions.scmDoBuildDuringDeployment": true,
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectLanguageModel": 2
 }

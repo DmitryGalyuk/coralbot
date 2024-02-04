@@ -1,0 +1,13 @@
+@login = {{corallogin}}
+@pass = {{coralpassword}}
+
+GET https://coral.club
+
+post https://coral.club/ajax/auth.php?access=yes&login={{login}}&password={{pass}}
+Cookie: CC_2019_LOGIN={{login}}
+
+https://coral.club/personal-new/structure/reports/?TYPE=PRep&DATE=202306
+
+https://coral.club/personal-new/structure/reports/reports_xls2.php?p1=PPRep&p2=202401&access=yes&login={{login}}&password={{pass}}
+
+https://coral.club/personal-new/index.php?logout=yes
