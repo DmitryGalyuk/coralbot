@@ -34,7 +34,25 @@
     <div class="pageHeader">
         <div>
             <i class="fa-solid fa-language"></i>
-            <select id="selectLang"></select> 
+            <select id="selectLang"></select>
+        </div>
+        <div>
+            <label for="login">Login</label>
+            <input name="login">
+            <label for="password">Password</label>
+            <input name="password" type="password">
+            <label for="reporttype">Report</label>
+            <select name="reporttype">
+                <option value="PPRep" selected>Struktura osobista</option>
+                <option value="D1PRep">Struktura osobista + struktura dyrektorska 1-go pokolenia</option>
+                <option value="DXPRep">Struktura osobista + struktura dyrektorska od 1-go do 6-go pokolenia</option>
+                <option value="DRep">Struktura dyrektorska do 10-go pokolenia Dyrektorów</option>
+            </select>
+            <label for="period">Period</label>
+            <select id="period"></select>
+            <button id="loginButton">Login</button>
+        </div>
+        <div>
             <span resId="selectFile"></span> <input type="file" id="excelFile" />
             <span id="spanParseFailed" class="errorMessage"></span>
         </div>

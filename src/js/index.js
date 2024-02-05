@@ -14,6 +14,7 @@ const T = await getTranslator();
 await (async function main() {
     await initTranslation();
     translate();
+    populateDates();
 
     assignEventHandlers();
 
@@ -32,6 +33,8 @@ function assignEventHandlers() {
 
     document.getElementById("excelFile").addEventListener('change', async (e) => { await fileChanged(); });
     document.getElementById("btnNoFilter").addEventListener('click', async (e) => {resetFilter(); await render();});
+    document.getElementById("loginButton").addEventListener('click', async (e) => { await fetchReport(); });
+
 
     let controls = document.querySelectorAll("form input, form select, form button");
     for (let ctrl of controls){
@@ -179,6 +182,13 @@ async function fileChanged() {
     await parseUploaded(document.querySelector('#excelFile').files[0]);
 }
 
+async function fetchReport() {
+    renderer = new Renderer();
+    let report = await fetch("http://localhost:7071/api/coralReportFetch?login=6190205&password=dima1984&lang=ru&reporttype=PPRep&period=202401");
+    await parseUploaded(report.blob());
+}
+
+
 async function parseUploaded(file) {
     await Spinner.show(T.spinnerReadingFile);
     location.hash = "";
@@ -203,3 +213,15 @@ async function parseUploaded(file) {
     document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
 }
 
+function populateDates() {
+    let periodSelect = document.getElementById("period");
+    const now = new Date();
+    for(let i=0; i<5; i++) {
+        now.setMonth(now.getMonth()-i);
+        periodSelect.add(new Option(
+            now.toLocaleDateString(Settings.language, { month: "long" }) + " " + now.getFullYear(), 
+            now.getYear().toString() + now.getMonth().toString().padStart(2, "0"))
+        );
+        
+    }
+}
