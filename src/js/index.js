@@ -4,6 +4,7 @@ import Member from '/js/member.js'
 import { Settings } from '/js/utils.js'
 import { getTranslator } from "/js/translator.js";
 import Spinner from '/js/spinner.js';
+import * as coral from '/js/coralserver.js';
 
 
 let root = undefined;
@@ -190,17 +191,20 @@ async function fetchReport() {
     let reporttype = document.getElementById("reporttype").value;
     let period = document.getElementById("period").value;
 
-    let report = await fetch("http://localhost:7071/api/coralReportFetch", {
+    Spinner.show(T.spinnerFetchingFile)
+    let report;
+    report = await fetch("http://localhost:7071/api/coralReportFetch", {
             method: "POST",
             body: JSON.stringify({
                 login: login,
                 password: password,
-                lang: Settings.language,
-                reporttype: reporttype,
-                period: period
+                lang: coral.lang2coralDomain[Settings.language],
+                reporttype: coral.reportTypePrefix(period) + reporttype,
+                period: coral.coralPeriod(period)
             })
         }
     );
+    Spinner.close();
     await parseUploaded(report.blob());
 }
 
@@ -225,6 +229,7 @@ async function parseUploaded(file) {
             console.error(e);
         }
     }
+    T.use(Settings.language);
     document.querySelector('#excelFile').value = null;
     document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
 }
@@ -239,8 +244,9 @@ function populateDates() {
     for(let i=0; i<5; i++) {
         periodSelect.add(new Option(
             now.toLocaleDateString(Settings.language, { month: "long" }) + " " + now.getFullYear(), 
-            now.getFullYear().toString() + now.getMonth().toString().padStart(2, "0"))
-            );
+            now.toUTCString()
+            )
+        );
         now.setMonth(now.getMonth()-1);
     }
 }

@@ -2,16 +2,16 @@ export default {
     // excel columns
     "name": '',
     "rownum": '#',
-    "level": 'Level',
-    "id": 'Club member',
+    "level": 'Number of Generations',
+    "id": 'Club Member (First name/Last name)',
     "rawtitle": 'Rank',
     "unpayedOrders": 'P',
-    "personalvolume": 'VP',
+    "personalvolume": 'PV (Personal Volume)',
     "lgo": 'PVG',
-    "nso": 'AAN',
-    "maxzr": 'Max.R',
-    "monthNoVolume": '#',
-    "status": 'S',
+    "nso": 'CNV (Cumulated Network Volume)',
+    "maxzr": 'MCR (Maximum Confirmed Rank)',
+    "monthNoVolume": 'Number of months with zero Volume Points accrued',
+    "status": 'Club Member Status',
 
     // title modifiers
     "shorthighest": "1",
@@ -81,6 +81,7 @@ export default {
     "spinnerReadingFile": "Reading the file...",
     "spinnerDrawing": "Drawing...",
     "spinnerCalculating": "Calculating...",
+    "spinnerFetchingFile": "Loading data from Coral Club server...",
 
     "filterUnpayedOrders": "Have unpayed orders"
 

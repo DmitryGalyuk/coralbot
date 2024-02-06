@@ -45,7 +45,7 @@ export default class Member {
 
         this.language = language;
         this.rownum = row['rownum'];
-        this.level = row['level'].trim();
+        this.level = row['level']?.trim();
         this.id = row['id'];
         this.key = this.id;
         this.text = this.name = row['name'];
@@ -57,7 +57,7 @@ export default class Member {
         this.monthNoVolume = typeof row['monthNoVolume'] === "number" ? row['monthNoVolume'] : 0;
         this.status = row['status'];
 
-        this.parseRawTitle("ru");
+        this.parseRawTitle();
         this.title = this.fullTitle();
 
         if (this.maxzr?.length > 2) {
@@ -85,7 +85,7 @@ export default class Member {
     }
 
     parseRawTitle() {
-        if (this.rawTitle.trim() == "") return "";
+        if (!!this.rawTitle?.trim() == "") return "";
 
         // Sort the order array based on the length of the short title (longest first),
         // and then alphabetically if they have the same length

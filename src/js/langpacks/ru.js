@@ -81,6 +81,13 @@ export default {
     "spinnerReadingFile": "Читаю файл...",
     "spinnerDrawing": "Прорисовываю...",
     "spinnerCalculating": "Просчитываю...",
+    "spinnerFetchingFile": "Получаю данные с сервера Coral Club...",
 
-    "filterUnpayedOrders": "Неоплаченные заказы"
+    "filterUnpayedOrders": "Неоплаченные заказы",
+
+    "reportTypePRep": "Личная структура",
+    "reportTypeD1PRep": "Личная структура + структура директоров 1-го поколения",
+    "reportTypeDXPRep": "Личная структура + структура директоров с 1-го по 6-е поколения",
+    "reportTypeDRep": "Директорская структура по 10-е поколение директоров",
+
 };

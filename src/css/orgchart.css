@@ -68,3 +68,14 @@
     overflow-x: clip;
     overflow-y: visible;
 }
+
+.link {
+    stroke-width: 2px;
+    stroke: black;
+}
+
+@media (prefers-color-scheme: dark) {
+    .link {
+        stroke: silver;
+    }
+}
