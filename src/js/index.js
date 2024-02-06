@@ -75,6 +75,7 @@ function translate() {
     for (let opt of document.getElementById("selectFilterPointsType").options) {
         opt.text = T[opt.value];
     }
+    populateDates();
 }
 
 async function initTranslation() {
@@ -184,7 +185,22 @@ async function fileChanged() {
 
 async function fetchReport() {
     renderer = new Renderer();
-    let report = await fetch("http://localhost:7071/api/coralReportFetch?login=6190205&password=dima1984&lang=ru&reporttype=PPRep&period=202401");
+    let login = document.getElementById("login").value;
+    let password = document.getElementById("password").value;
+    let reporttype = document.getElementById("reporttype").value;
+    let period = document.getElementById("period").value;
+
+    let report = await fetch("http://localhost:7071/api/coralReportFetch", {
+            method: "POST",
+            body: JSON.stringify({
+                login: login,
+                password: password,
+                lang: Settings.language,
+                reporttype: reporttype,
+                period: period
+            })
+        }
+    );
     await parseUploaded(report.blob());
 }
 
@@ -215,13 +231,16 @@ async function parseUploaded(file) {
 
 function populateDates() {
     let periodSelect = document.getElementById("period");
+    while(periodSelect.options.length > 0) {
+        periodSelect.remove(0);
+    }
+    periodSelect
     const now = new Date();
     for(let i=0; i<5; i++) {
-        now.setMonth(now.getMonth()-i);
         periodSelect.add(new Option(
             now.toLocaleDateString(Settings.language, { month: "long" }) + " " + now.getFullYear(), 
-            now.getYear().toString() + now.getMonth().toString().padStart(2, "0"))
-        );
-        
+            now.getFullYear().toString() + now.getMonth().toString().padStart(2, "0"))
+            );
+        now.setMonth(now.getMonth()-1);
     }
 }

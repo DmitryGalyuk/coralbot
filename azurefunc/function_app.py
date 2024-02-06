@@ -12,12 +12,16 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    login = req.params.get('login')
-    password = req.params.get('password')
-    lang = req.params.get('lang') or "by"
-    reporttype = req.params.get('reporttype')
-    period = req.params.get('period')
+    request_body = req.get_json()
+    login = request_body['login']
+    password = request_body['password']
+    lang = request_body['lang'] or "by"
+    reporttype = request_body['reporttype']
+    period = request_body['period']
     
+    if req.headers["referer"] != "http://127.0.0.1:5500/":
+        return func.HttpResponse("Not found", status_code=404)
+
     if not login or not password:
         return func.HttpResponse("No login or password provided", status_code=401)
 
