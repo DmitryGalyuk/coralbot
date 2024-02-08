@@ -30,85 +30,102 @@
 </head>
 
 <body>
+    <div class="pageContent">
+        <div class="pageHeader">
+            <div class="headerSettings">
+                <div>
+                    <i class="fa-solid fa-language"></i>
+                    <select id="selectLang"></select>
+                </div>
+                <div class="reportRetrieval">
+                    <div class="coralLoginForm">
+                        <span>
+                            <label for="login">Login</label>
+                            <input id="login">
+                        </span>
+                        <span>
+                            <label for="password">Password</label>
+                            <input id="password" type="password">
+                        </span>
+                        <span>
+                            <label for="reporttype">Report</label>
+                            <select id="reporttype">
+                                <option value="PRep" selected>Struktura osobista</option>
+                                <option value="D1PRep">Struktura osobista + struktura dyrektorska 1-go pokolenia
+                                </option>
+                                <option value="DXPRep">Struktura osobista + struktura dyrektorska od 1-go do 6-go
+                                    pokolenia</option>
+                                <option value="DRep">Struktura dyrektorska do 10-go pokolenia Dyrektorów</option>
+                            </select>
+                        </span>
+                        <span>
+                            <label for="period">Period</label>
+                            <select id="period"></select>
+                        </span>
+                        <button id="loginButton">Login</button>
+                    </div>
 
-    <div class="pageHeader">
-        <div>
-            <i class="fa-solid fa-language"></i>
-            <select id="selectLang"></select>
-        </div>
-        <div>
-            <label for="login">Login</label>
-            <input id="login">
-            <label for="password">Password</label>
-            <input id="password" type="password">
-            <label for="reporttype">Report</label>
-            <select id="reporttype">
-                <option value="PRep" selected>Struktura osobista</option>
-                <option value="D1PRep">Struktura osobista + struktura dyrektorska 1-go pokolenia</option>
-                <option value="DXPRep">Struktura osobista + struktura dyrektorska od 1-go do 6-go pokolenia</option>
-                <option value="DRep">Struktura dyrektorska do 10-go pokolenia Dyrektorów</option>
-            </select>
-            <label for="period">Period</label>
-            <select id="period"></select>
-            <button id="loginButton">Login</button>
-        </div>
-        <div>
-            <span resId="selectFile"></span> <input type="file" id="excelFile" />
-            <span id="spanParseFailed" class="errorMessage"></span>
-        </div>
+                    <div>
+                        <span resId="selectFile"></span> <input type="file" id="excelFile" />
+                        <span id="spanParseFailed" class="errorMessage"></span>
+                    </div>
+                </div>
+                <form id="filter">
+                    <!-- <button id="btnMastersOnly" resId="mastersOnly">Masters Only</button> -->
+                    <div class="filterMonths">
+                        <input type="checkbox" id="filterMonths">
+                        <label for="filterMonths" resId="noOrdersXMonths">No purcases last 3 months</label>
+                        <span resId="lblFrom">from</span>
+                        <input id="filterMonthsFrom" type="number" size="4">
+                        <span resId="lblTo">to</span>
+                        <input id="filterMonthsTo" type="number" size="4">
+                        <span resId="months">months</span>
+                    </div>
 
-        <form id="filter">
-            <!-- <button id="btnMastersOnly" resId="mastersOnly">Masters Only</button> -->
-            <div class="filterMonths">
-                <input type="checkbox" id="filterMonths">
-                <label for="filterMonths" resId="noOrdersXMonths">No purcases last 3 months</label>
-                <span resId="lblFrom">from</span>
-                <input id="filterMonthsFrom" type="number" size="4">
-                <span resId="lblTo">to</span>
-                <input id="filterMonthsTo" type="number" size="4">
-                <span resId="months">months</span>
+                    <div class="filterPoints">
+                        <input type="checkbox" id="filterPoints" checked>
+                        <select id="selectFilterPointsType">
+                            <option value="pointsPersonal">personal volume points</option>
+                            <option value="pointsGroup">group volume points</option>
+                            <option value="pointsOverall">structure volume points</option>
+                            <!-- <option value="percentNextTitle">% requirement for next title</option> -->
+                        </select>
+                        <span resId="lblFrom">from</span>
+                        <input id="filterPointsFrom" type="number" size="4" value="1">
+                        <span resId="lblTo">to</span>
+                        <input id="filterPointsTo" type="number" size="4">
+                    </div>
+                    <div>
+                        <input type="checkbox" id="filterUnpayedOrders">
+                        <label for="filterUnpayedOrders" resId="filterUnpayedOrders">Have unpayed orders</label>
+                        <input type="checkbox" id="filterDirectorsOnly">
+                        <label for="filterDirectorsOnly" resId="directorsOnly">Directors only</label>
+                        <input type="checkbox" id="filterParentDirectors">
+                        <label for="filterParentDirectors" resId="groupUnderDirectors">Group consumers under
+                            Directors</label>
+                    </div>
+                    <!-- <button id="btnHideZeros">Спрятать нули</button> -->
+                    <button id="btnNoFilter" resId="resetFilter">Show whole structure</button>
+                    <button id="btnUnfoldDirectors" resId="unfoldDirectors">Unfold Directors</button>
+                </form>
             </div>
-
-            <div class="filterPoints">
-                <input type="checkbox" id="filterPoints">
-                <select id="selectFilterPointsType">
-                    <option value="pointsPersonal">personal volume points</option>
-                    <option value="pointsGroup">group volume points</option>
-                    <option value="pointsOverall">structure volume points</option>
-                    <!-- <option value="percentNextTitle">% requirement for next title</option> -->
-                </select>
-                <span resId="lblFrom">from</span>
-                <input id="filterPointsFrom" type="number" size="4">
-                <span resId="lblTo">to</span>
-                <input id="filterPointsTo" type="number" size="4">
+            <div id="mapIcon">
+                <div id="mm"></div>
+                <div id="iconOverlay"></div>
             </div>
-            <div>
-                <input type="checkbox" id="filterUnpayedOrders">
-                <label for="filterUnpayedOrders" resId="filterUnpayedOrders">Have unpayed orders</label>
-                <input type="checkbox" id="filterDirectorsOnly">
-                <label for="filterDirectorsOnly" resId="directorsOnly">Directors only</label>
-                <input type="checkbox" id="filterParentDirectors">
-                <label for="filterParentDirectors" resId="groupUnderDirectors">Group consumers under Directors</label>
-            </div>
-            <!-- <button id="btnHideZeros">Спрятать нули</button> -->
-            <button id="btnNoFilter" resId="showFullStructure">Show whole structure</button>
-        </form>
+        </div>
 
         <div id="breadcrumbsPanel">
             <div id="breadcrumbs"></div>
         </div>
-        
-        <div id="mapIcon">
-            <div id="iconOverlay"></div>
-            <div id="mm"></div>
-        </div>
+
+        <div id="orgchart"></div>
 
         <dialog id="mapDialog">
             <i id="mapCloseButton" class="fa fa-times"></i>
         </dialog>
-    </div>
-    <div id="orgchart"></div>
 
+    </div>
 </body>
 
 </html>

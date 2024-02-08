@@ -67,7 +67,9 @@ export default {
     "noOrdersXMonths": "Без закупок",
     "showFullStructure": "Показать всю структуру",
     "parseFailedMessage": "Не могу прочитать файл. Проверьте, правильно ли выбран язык файла. Если ошибка появляется, напишите мне, пожалуйста, на {0}",
-    
+    "resetFilter": "Сбросить фильтр",
+    "unfoldDirectors": "Развернуть директоров",
+
     "lblFrom": "от",
     "lblTo": "до",
     "months": "месяцев",

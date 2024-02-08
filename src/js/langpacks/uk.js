@@ -68,6 +68,8 @@ export default {
     "noOrdersXMonths": "Без закупівель",
     "showFullStructure": "Показати всю структуру",
     "parseFailedMessage": "Не можу прочитати файл. Перевірте, чи правильно вибрано мову файлу. Якщо з'являється помилка, напишіть мені, будь ласка на {0}",
+    "resetFilter": "Скинути Фільтр",
+    "unfoldDirectors": "Розгорнути Директорів",
 
     "lblFrom": "від",
     "lblTo": "до",
@@ -83,5 +85,10 @@ export default {
     "spinnerDrawing": "Візуалізація...",
     "spinnerCalculating": "Обчислення...",
 
-    "filterUnpayedOrders": "Неоплачені замовлення"
+    "filterUnpayedOrders": "Неоплачені замовлення",
+
+    "reportTypePRep": "Особиста структура",
+    "reportTypeD1PRep": "Особиста структура + структура директорів 1-го покоління",
+    "reportTypeDXPRep": "Особиста структура + структура директорів з 1-го по 6-е покоління",
+    "reportTypeDRep": "Директорська структура по 10-е покоління директорів",
 };

@@ -12,7 +12,10 @@ export function reportTypePrefix(monthUTC) {
     if (now.getMonth() == period.getMonth()) return "C";
     
     now.setMonth(now.getMonth()-1);
-    if (now.getMonth() == period.getMonth()) return "P";
+    if (now.getMonth() == period.getMonth() 
+        && now.getDate() < 7) { // stupid workaround...
+        return "P";
+    }
     
     return "F";
 }

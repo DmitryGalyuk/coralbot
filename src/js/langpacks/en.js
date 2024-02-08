@@ -31,7 +31,7 @@ export default {
     "shortGoldenDirector": "GD",
     "shortEmeraldDirector": "ED",
     "shortDiamondDirector": "DD",
-    "shortMaster": "",
+    "shortMaster": "E",
     "shortSilverMaster": "",
     "shortDoubleSilverMaster": "",
     "shortGoldenMaster": "",
@@ -41,7 +41,7 @@ export default {
     "longPremiumConsumer": "Premium Consumer",
     "longJuniorAssistant": "Junior Assistant",
     "longAssistant": "Assistant",
-    "longDirector": "Директор",
+    "longDirector": "Director",
     "longSilverDirector": "Silver Director",
     "longGoldenDirector": "Golden Director",
     "longEmeraldDirector": "Emerald Director",
@@ -67,6 +67,8 @@ export default {
     "noOrdersXMonths": "No orders",
     "showFullStructure": "Show full structure",
     "parseFailedMessage": "Can't read file. Check if the language of the file is correct. If an error occurs, please write to me at {0}",
+    "resetFilter": "Reset Filter",
+    "unfoldDirectors": "Unfold Directors",
     
     "lblFrom": "from",
     "lblTo": "to",
@@ -83,6 +85,11 @@ export default {
     "spinnerCalculating": "Calculating...",
     "spinnerFetchingFile": "Loading data from Coral Club server...",
 
-    "filterUnpayedOrders": "Have unpayed orders"
+    "filterUnpayedOrders": "Have unpayed orders",
+
+    "reportTypePRep": "Personal Network",
+    "reportTypeD1PRep": "Personal structure and 1st Generation",
+    "reportTypeDXPRep": "Personal structure and Generations 1 to 6",
+    "reportTypeDRep": "Personal structure and Generations 1 to 10",
 
 };

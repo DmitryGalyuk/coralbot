@@ -67,6 +67,8 @@ export default {
     "noOrdersXMonths": "Nessun acquisto",
     "showFullStructure": "Mostra tutta la struttura",
     "parseFailedMessage": "Impossibile leggere il file. Controlla se la lingua del file è corretta. Se si verifica un errore, scrivimi a {0}",
+    "resetFilter": "Resetta Filtro",
+    "unfoldDirectors": "Espandi Direttori",
 
     "lblFrom": "dalle",
     "lblTo": "alle",
@@ -82,6 +84,10 @@ export default {
     "spinnerDrawing": "Visualizzazione...",
     "spinnerCalculating": "Calcolo...",
 
-    "filterUnpayedOrders": "Ordini non pagati"
+    "filterUnpayedOrders": "Ordini non pagati",
 
+    "reportTypePRep": "Struttura privata",
+    "reportTypeD1PRep": "Struttura privata + struttura direttori della Prima generazione",
+    "reportTypeDXPRep": "Struttura privata + struttura direttori dalla Prima alla Sesta generazione",
+    "reportTypeDRep": "Stuttura direttori fino alla Decima generazione",
 };
