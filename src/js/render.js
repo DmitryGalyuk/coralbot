@@ -33,24 +33,29 @@ export default class Renderer {
 
     }
 
-    async renderData(root, activeBranch) {
-        if (!activeBranch) return;
+    colorize(root) {
+        Renderer.calcHueSpans(root);
+        Renderer.calcHueRanges(root);
+        Renderer.assignColors(root);
+        this.colored = true;
+    }
+
+    async renderData(root, activeBranch, selectedNode) {
+        await Spinner.show(T.spinnerDrawing);
+        if (!root || !activeBranch) return;
 
         if (!this.colored) {
-            Renderer.calcHueSpans(root);
-            Renderer.calcHueRanges(root);
-            Renderer.assignColors(root);
-            this.colored = true;
+            this.colorize(root)
         }
         
         utils.traverse(root, (n)=>{
             n.children.sort((a,b)=>b.overallstructuretotal - a.overallstructuretotal)
         });
 
-        this.breadcrumbs.render(root, activeBranch);
-        this.mindmap.render(activeBranch);
-        this.orgchart.render(root, activeBranch);
-
+        this.breadcrumbs.render(root, selectedNode);
+        this.mindmap.render(selectedNode);
+        this.orgchart.render(root, activeBranch, selectedNode);
+        Spinner.close();
     };
 
     static calcHueSpans(node, level=0) {

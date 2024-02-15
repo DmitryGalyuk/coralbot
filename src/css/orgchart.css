@@ -69,10 +69,22 @@
     overflow-y: visible;
 }
 
-.link {
+:root {
+    --linkColor: #E4E2E9;
+    --linkWidth: 2px;
+    --linColorHighlighted: #152785;
+    --linkWidthHighlighted: 3px;
+}
+
+/* .link {
     stroke-width: 2px;
     stroke: black;
 }
+
+.link .selected {
+    stroke-width: 2px;
+    stroke: red;
+} */
 
 @media (prefers-color-scheme: dark) {
     .link {

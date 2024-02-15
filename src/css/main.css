@@ -42,13 +42,10 @@ a {
     color: red;
 }
 
-form input[type=number] {
+input[type=number] {
     width: 5em;
 }
 
-form div {
-    padding: 0.1em;
-}
 
 #mapIcon {
     /* position: fixed;

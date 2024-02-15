@@ -8,7 +8,7 @@ import * as coral from '/js/coralserver.js';
 
 
 let root = undefined;
-let branch = undefined;
+let selectedNode = undefined;
 let renderer = new Renderer();
 const T = await getTranslator();
 
@@ -30,16 +30,17 @@ function sampleData() {
 }
 
 function assignEventHandlers() {
-        window.addEventListener("hashchange", async (e) => await branchChange(e));
+    window.addEventListener("hashchange", async (e) => await branchChange(e));
 
     document.getElementById("excelFile").addEventListener('change', async (e) => { await fileChanged(); });
     document.getElementById("btnNoFilter").addEventListener('click', async (e) => {resetFilter(); await render();});
     document.getElementById("loginButton").addEventListener('click', async (e) => { await fetchReport(); });
+    document.getElementById("btnUnfoldDirectors").addEventListener('click', (e) => { unfoldDirectors(); });
 
 
-    let controls = document.querySelectorAll("form input, form select, form button");
+    let controls = document.querySelectorAll(".filter input, .filter select");
     for (let ctrl of controls){
-        ctrl.addEventListener(ctrl.tagName == "BUTTON" ? "click" : "change", async (e) => await render());
+        ctrl.addEventListener("change", async (e) =>  render());
     }
     
     let mapIcon = document.getElementById("mapIcon");
@@ -70,11 +71,20 @@ function assignEventHandlers() {
     mapCloseButton.addEventListener('click', mapDialogClose);
 }
 
+function unfoldDirectors() {
+    let flattenTree = Member.flattenTree(root);
+    flattenTree.forEach(m=>{m._expanded = m.isDirector()});
+    renderer.orgchart.render(root, selectedNode);
+}
+
 function translate() {
     T.translatePage();
 
     for (let opt of document.getElementById("selectFilterPointsType").options) {
         opt.text = T[opt.value];
+    }
+    for (let opt of document.getElementById("reporttype").options) {
+        opt.text = T["reportType"+opt.value];
     }
     populateDates();
 }
@@ -100,7 +110,7 @@ async function initTranslation() {
 async function render() {
     let filteredNodes = filter();
     await Spinner.show(T.spinnerDrawing);
-    await renderer.renderData(root, filteredNodes);
+    await renderer.renderData(root, filteredNodes, selectedNode);
     Spinner.close();
 }
 
@@ -109,13 +119,12 @@ async function branchChange(event) {
     if (event.newURL.indexOf("#")) {
         let hash = event.newURL.substring(event.newURL.indexOf("#")+1); // Get the hash and remove the '#'
         if (hash !== "") {
-            branch = root.findChild(hash);
+            selectedNode = root.findChild(hash);
         }
     }
     else {
-        branch = root;
+        selectedNode = root;
     }
-    renderer.currentBranch = branch;
     render();
 }
 
@@ -129,10 +138,10 @@ function filter() {
     let parentPredicate = ()=>true;
 
     if (!filterMonths && !filterPoints && !filterDirectorsOnly && !filterParentDirectors && !filterUnpayedOrders) {
-        return branch;
+        return selectedNode;
     }
 
-    let filteredTree = Member.query(branch);
+    let filteredTree = Member.query(root);
 
     if (filterParentDirectors) {
         parentPredicate = p=>p.isDirector();
@@ -220,9 +229,11 @@ async function parseUploaded(file) {
         try {
             await T.use(lang);
             parser = new ReportParses(file, lang);
-            root = branch = await parser.parseExcel();
+            root = selectedNode = await parser.parseExcel();
 
+            renderer.colorize(root);
             await render();
+            // renderer.orgchart.unfoldDirectors();
             return;
         }
         catch (e) {

@@ -45,7 +45,8 @@ export default class Member {
 
         this.language = language;
         this.rownum = row['rownum'];
-        this.level = row['level']?.trim();
+        this.level = row['level'].trim();
+        this.depth = parseInt(this.level.slice(1));
         this.id = row['id'];
         this.key = this.id;
         this.text = this.name = row['name'];
