@@ -34,10 +34,15 @@ export default class Mindmap {
         }
     }
 
-    async render(root) {
+    async render(root, filteredNodes, selectedNode) {
         let result = ["mindmap\n"];
 
-        utils.traverse(root, Mindmap.renderNode(result), 1);
+        let mapRoot = filteredNodes || root;
+        if (selectedNode && mapRoot.findChild(selectedNode.id)) {
+            mapRoot = mapRoot.findChild(selectedNode.id);
+        }
+
+        utils.traverse(mapRoot, Mindmap.renderNode(result), 1);
 
         let svgCode = await mermaid.render('mindmap', result.join(''))
         this.targetElement.innerHTML = svgCode.svg;

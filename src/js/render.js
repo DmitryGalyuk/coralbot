@@ -40,9 +40,9 @@ export default class Renderer {
         this.colored = true;
     }
 
-    async renderData(root, activeBranch, selectedNode) {
+    async renderData(root, filteredNodes, selectedNode) {
         await Spinner.show(T.spinnerDrawing);
-        if (!root || !activeBranch) return;
+        if (!root || !filteredNodes) return;
 
         if (!this.colored) {
             this.colorize(root)
@@ -53,8 +53,8 @@ export default class Renderer {
         });
 
         this.breadcrumbs.render(root, selectedNode);
-        this.mindmap.render(selectedNode);
-        this.orgchart.render(root, activeBranch, selectedNode);
+        this.mindmap.render(root, filteredNodes, selectedNode);
+        this.orgchart.render(root, filteredNodes, selectedNode);
         Spinner.close();
     };
 

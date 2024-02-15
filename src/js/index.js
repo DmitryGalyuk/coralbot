@@ -115,6 +115,8 @@ async function render() {
 }
 
 async function branchChange(event) {
+    if (!root) return;
+    
     event.preventDefault(); // Prevent the default action
     if (event.newURL.indexOf("#")) {
         let hash = event.newURL.substring(event.newURL.indexOf("#")+1); // Get the hash and remove the '#'
@@ -202,7 +204,8 @@ async function fetchReport() {
 
     Spinner.show(T.spinnerFetchingFile)
     let report;
-    report = await fetch("http://localhost:7071/api/coralReportFetch", {
+    // report = await fetch("http://localhost:7071/api/coralReportFetch", {
+    report = await fetch("https://coralreportfetch.azurewebsites.net", {
             method: "POST",
             body: JSON.stringify({
                 login: login,

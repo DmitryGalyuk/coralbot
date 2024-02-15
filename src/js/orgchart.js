@@ -53,10 +53,10 @@ export default class OrgChart {
 
   }
 
-  render(root, activeBranch, selectedNode) {
+  render(root, filteredNodes, selectedNode) {
     let flat = Member.flattenTree(root);
     this.chart.container(this.templateNode).data(flat);
-    if(selectedNode.id != root.id) {
+    if(selectedNode && selectedNode.id != root.id) {
       this.highlight(selectedNode.id);
     }
     else {
