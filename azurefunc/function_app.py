@@ -56,4 +56,5 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     content = r.content
     result = re.sub(b".*</script>", b"", content, 0, re.DOTALL)
 
-    return func.HttpResponse(result, status_code=r.status_code, headers={"content-disposition": r.headers["content-disposition"]})
+    print(r.headers["content-disposition"])
+    return func.HttpResponse(result, status_code=r.status_code, headers={"Content-Disposition": r.headers["Content-Disposition"]})
