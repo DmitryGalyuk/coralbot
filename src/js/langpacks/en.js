@@ -92,4 +92,6 @@ export default {
     "reportTypeDXPRep": "Personal structure and Generations 1 to 6",
     "reportTypeDRep": "Personal structure and Generations 1 to 10",
 
+    "errorInvalidUsernameOrPassword": "Invalid Username or Password",
+
 };

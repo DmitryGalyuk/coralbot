@@ -92,4 +92,6 @@ export default {
     "reportTypeDXPRep": "Личная структура + структура директоров с 1-го по 6-е поколения",
     "reportTypeDRep": "Директорская структура по 10-е поколение директоров",
 
+    "errorInvalidUsernameOrPassword": "Неверное имя пользователя или пароль",
+
 };

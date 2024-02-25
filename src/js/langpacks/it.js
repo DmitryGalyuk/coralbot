@@ -90,4 +90,6 @@ export default {
     "reportTypeD1PRep": "Struttura privata + struttura direttori della Prima generazione",
     "reportTypeDXPRep": "Struttura privata + struttura direttori dalla Prima alla Sesta generazione",
     "reportTypeDRep": "Stuttura direttori fino alla Decima generazione",
+
+    "errorInvalidUsernameOrPassword": "Nome utente o password non validi",
 };

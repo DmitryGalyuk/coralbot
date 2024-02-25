@@ -223,6 +223,12 @@ async function fetchReport() {
         }
     );
     Spinner.close();
+    
+    if (report.status == 403 || report.status == 401) {
+        setErrorMessage(T.errorInvalidUsernameOrPassword);
+        return;
+    }
+
     await parseUploaded(report.blob());
 }
 
@@ -251,7 +257,7 @@ async function parseUploaded(file) {
     }
     T.use(Settings.language);
     document.querySelector('#excelFile').value = null;
-    document.getElementById("spanParseFailed").textContent = T.parseFailedMessage("dmitry@galyuk.com");
+    setErrorMessage(T.parseFailedMessage("dmitry@galyuk.com"));
 }
 
 function populateDates() {
@@ -269,4 +275,8 @@ function populateDates() {
         );
         now.setMonth(now.getMonth()-1);
     }
+}
+
+function setErrorMessage(msg) {
+    document.getElementById("spanParseFailed").textContent = msg;
 }
