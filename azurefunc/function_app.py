@@ -8,9 +8,11 @@ import re
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
+'''
+Fetches the report from coral.club server
+'''
 @app.route(route="coralReportFetch")
 def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
 
     request_body = req.get_json() if req.get_body() else req.params
     login = request_body['login']
@@ -25,7 +27,10 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     if not login or not password:
         return func.HttpResponse("No login or password provided", status_code=401)
 
+    logging.debug('calling coral.club root')
     r = requests.get(f"https://{lang}.coral.club", timeout=10)
+    logging.debug("%s: %s", r.status_code, r.text)
+
     cookies = r.cookies
     cookies["CC_2019_LOGIN"] = login
     headers = {
@@ -46,13 +51,19 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
 #        "x-requested-with": "XMLHttpRequest",
 
     }
+
+    logging.debug("calling auth.php")
     r = requests.post(f'https://{lang}.coral.club/ajax/auth.php?access=yes&login={login}&password={password}'
                       , cookies=cookies, timeout=10, headers=headers
                       , data=f"BACK_URL=%2F&access=yes&login={login}&password={password}&userAuth=false")
-    
+    logging.debug("%s: %s", r.status_code, r.text)
+
+
+    logging.debug("calling reports_xls2.php")
     r = requests.get(f"https://{lang}.coral.club/personal-new/structure/reports/reports_xls2.php?p1={reporttype}&p2={period}"
                      , cookies=cookies, timeout=10, headers=headers)
-    
+    logging.debug("%s: %s", r.status_code, r.text)
+
     content = r.content
     result = re.sub(b".*</script>", b"", content, 0, re.DOTALL)
 
