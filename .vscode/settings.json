@@ -1,5 +1,7 @@
 {
     "liveServer.settings.root": "/src",
+    "liveServer.settings.host": "dmitrygalyukmac.local",
+    "liveServer.settings.port": 80,
     "azureFunctions.deploySubpath": "azurefunc",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",

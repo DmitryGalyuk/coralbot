@@ -208,7 +208,7 @@ async function fetchReport() {
     if (window.location.host == "coralometer.galyuk.com") {
         apiUrl = "https://coralreportfetch.azurewebsites.net/api/coralReportFetch";
     } else {
-        apiUrl = "http://localhost:7071/api/coralReportFetch";
+        apiUrl = "http://dmitrygalyukmac.local:7071/api/coralReportFetch";
     }
     
     report = await fetch(apiUrl, {
