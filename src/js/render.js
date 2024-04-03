@@ -3,18 +3,18 @@ import * as utils from './utils.js'
 import Spinner from "./spinner.js";
 import Breadcrumbs from "./breadcrumbs.js";
 import Mindmap from "./mindmap.js";
-import OrgChart from "./orgchart.js";
+import Treeview from "./treeview.js";
 
 import { getTranslator } from "./translator.js";
 const T = await getTranslator();
 
 export default class Renderer {
-    constructor(mindmapId = "mm", breadcrumbsId = "breadcrumbs", orgchartId = "orgchart") {
+    constructor(mindmapId = "mm", breadcrumbsId = "breadcrumbs", orgchartId = "orgchart", treeviewId = "navTree") {
         this.linkMaxWidth = 50;
 
         this.breadcrumbs = new Breadcrumbs(document.getElementById(breadcrumbsId));
         this.mindmap = new Mindmap(document.getElementById(mindmapId));
-        this.orgchart = new OrgChart(document.getElementById(orgchartId));
+        this.treeview = new Treeview(document.getElementById(treeviewId));
 
         let dark = false;
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -54,7 +54,7 @@ export default class Renderer {
 
         this.breadcrumbs.render(root, selectedNode);
         this.mindmap.render(root, filteredNodes, selectedNode);
-        this.orgchart.render(root, filteredNodes, selectedNode);
+        this.treeview.render(root);
         Spinner.close();
     };
 

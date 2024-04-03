@@ -1,0 +1,48 @@
+#navTree {
+    ul {
+        padding-inline-start: 1.5rem;
+    }
+    li {
+        list-style: none;
+    }
+
+    ul li:before {    
+        font-family: 'FontAwesome';
+        content: '\f0d7';
+        margin:0 5px 0 -15px;
+        color: #f00;
+    }
+
+    
+    li:has(li).wrapped:before {
+        content: '\f0da';
+    }
+
+    ul > li:not(:has(li)):before  {
+        content: '-';
+    }
+    
+    .wrapped > * {
+        display: none;
+        animation: disappear 0.5s;
+    }
+
+
+}
+
+@keyframes disappear {
+    0% {
+        display: block;
+        opacity: 1;
+    }
+
+    99% {
+        display: block;
+        opacity: 0.1;
+    }
+
+    100% {
+        display: none;
+        opacity: 0;
+    }
+}
