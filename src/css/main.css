@@ -1,6 +1,6 @@
 body {
-    background-color: var(--light_bodyBg-color);
-    color: var(--light_body-color);
+    background-color: var(--bodyBg-color);
+    color: var(--body-color);
     margin: 0;
     padding: 10;
 
@@ -35,7 +35,7 @@ body {
 
 
 a {
-    color: var(--light_body-color);
+    color: var(--body-color);
 }
 
 .errorMessage {
@@ -50,7 +50,7 @@ input[type=number] {
 #mapIcon {
     cursor: pointer;
     border: 1px solid gray;
-    background-color: var(--light_bodyBg-color);
+    background-color: var(--bodyBg-color);
 }
 
 #mapIcon svg {
@@ -78,7 +78,7 @@ input[type=number] {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     height: 90%;
     width: 90%;
-    background-color: var(--light_bodyBg-color);
+    background-color: var(--bodyBg-color);
 }
 
 #mapDialog::backdrop {
@@ -98,7 +98,7 @@ input[type=number] {
 }
 
 .reportRetrieval > * {
-    border: var(--light_body-color) solid 1px;
+    border: var(--body-color) solid 1px;
     padding: 0.2em;
 }
 
@@ -113,18 +113,7 @@ input[type=number] {
 }
 
 @media (prefers-color-scheme: dark) {
-    body {
-        background-color: var(--dark_bodyBg-color);
-        color: var(--dark_body-color);
-    }
     a {
         color: #999;
     }
-    #mapIcon {
-        background-color: var(--dark_bodyBg-color);
-    }
-    #mapDialog {
-        background-color: var(--dark_bodyBg-color);
-    }
-    
 }

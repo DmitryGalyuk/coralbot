@@ -30,7 +30,7 @@
         color: coral;
         position: sticky;
         top: calc(var(--_depth) * 1rem);
-        
+        background-color: var(--bodyBg-color);
     }
 
     div:not(:has(div)):hover {

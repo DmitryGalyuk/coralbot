@@ -4,5 +4,12 @@
 
     --dark_body-color: var(--light_bodyBg-color);
     --dark_bodyBg-color: var(--light_body-color);
+
+    --body-color: var(--light_body-color);
+    --bodyBg-color: var(--light_bodyBg-color);
     
+    @media (prefers-color-scheme: dark) {
+        --body-color: var(--dark_body-color);
+        --bodyBg-color: var(--dark_bodyBg-color);
+    }
 }
