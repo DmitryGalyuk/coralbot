@@ -25,15 +25,12 @@ export default class Treeview {
                     let wrapped = li.classList.toggle("wrapped");
                     Treeview.toggleChildrenVisibility(li, !wrapped);
                 });
-                
+
                 li.addEventListener('mouseover', () => {
                     let parentId = li.dataset.parentId;
                     if (!parentId) return;
 
-                    // Select all the parent elements of the hovered li
                     let parentLi = document.querySelector(`[data-id='${parentId}']`);
-
-                    // Apply styles to each parent li element
                     while (parentLi !== null) {
                         parentLi.classList.add('hoveredParent');
                         let parentParentId = parentLi.dataset.parentId;
@@ -42,7 +39,6 @@ export default class Treeview {
                 });
 
                 li.addEventListener('mouseout', () => {
-                    // Remove styles from all li elements
                     document.querySelectorAll('.hoveredParent').forEach(el => {
                         el.classList.remove('hoveredParent');
                     });
