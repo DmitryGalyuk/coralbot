@@ -1,13 +1,11 @@
 #navTree {
-    ul {
-        padding-inline-start: 1.5rem;
+    --_levelPadding: 1.5rem;
+
+    div {
+        padding-left: calc( var(--_depth) * var(--_levelPadding));
     }
 
-    li {
-        list-style: none;
-    }
-
-    ul li:before {
+    div:before {
         font-family: 'FontAwesome';
         content: '\f0d7';
         margin: 0 5px 0 -15px;
@@ -15,11 +13,11 @@
     }
 
 
-    li:has(li).wrapped:before {
+    div.wrapped:before {
         content: '\f0da';
     }
 
-    ul>li:not(:has(li)):before {
+    div[data-has-children='false']:before {
         content: '-';
     }
 
@@ -27,18 +25,15 @@
         display: none;
         /* animation: disappear 0.3s; */
     }
-    
-    li.hoveredParent {
+
+    div.hoveredParent {
         color: coral;
-        position: absolute;
-        top: 0px;
+        position: sticky;
+        top: calc(var(--_depth) * 1rem);
+        
     }
-    
-    li.hoveredParent > ul {
-        color: white;
-    }
-    
-    li:not(:has(li)):hover {
+
+    div:not(:has(div)):hover {
         color: lime;
     }
 }

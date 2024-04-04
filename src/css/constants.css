@@ -1,0 +1,8 @@
+:root {
+    --light_body-color: #444;
+    --light_bodyBg-color: #EEE;
+
+    --dark_body-color: var(--light_bodyBg-color);
+    --dark_bodyBg-color: var(--light_body-color);
+    
+}

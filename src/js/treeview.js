@@ -4,25 +4,40 @@ export default class Treeview {
     }
 
     render(dataRoot) {
-        let htmlContainer = document.createElement("UL");
-        this.renderNode(htmlContainer, dataRoot);
-        this.targetElement.innerHTML = htmlContainer.outerHTML;
+        this.renderNode(this.targetElement, dataRoot);
 
-        let lis = this.targetElement.querySelectorAll("LI");
+        let lis = this.targetElement.querySelectorAll("DIV");
         lis.forEach(
             li => {
                 li.addEventListener("click", (e) => {
-                    li.classList.toggle("wrapped");
-                    e.stopPropagation();
+                    function toggleChildrenVisibility(node, visible) {
+                        if (node.dataset.hasChildren) {
+                            let children = document.querySelectorAll(`[data-parent-id='${node.dataset.id}']`);
+                            for (let child of children) {
+                                child.style.display = visible ? "block" : "none";
+                                if (child.dataset.hasChildren) {
+                                    toggleChildrenVisibility(child, visible);
+                                }
+                            }
+                        }
+
+                    }
+                    let wrapped = li.classList.toggle("wrapped");
+                    toggleChildrenVisibility(li, !wrapped);
+                    // e.stopPropagation();
                 });
                 li.addEventListener('mouseover', () => {
+                    let parentId = li.dataset.parentId;
+                    if (!parentId) return;
+
                     // Select all the parent elements of the hovered li
-                    let parentLi = li.parentElement.closest('li');
+                    let parentLi = document.querySelector(`[data-id='${parentId}']`);
 
                     // Apply styles to each parent li element
                     while (parentLi !== null) {
                         parentLi.classList.add('hoveredParent');
-                        parentLi = parentLi.parentElement.closest('li');
+                        let parentParentId = parentLi.dataset.parentId;
+                        parentLi = document.querySelector(`[data-id='${parentParentId}']`);
                     }
                 });
 
@@ -38,16 +53,18 @@ export default class Treeview {
     }
 
     renderNode(htmlRoot, dataNode) {
-        let li = document.createElement("LI");
-        li.textContent = dataNode.name;
+        let htmlRow = document.createElement("DIV");
+        htmlRow.textContent = dataNode.name;
+        htmlRow.style.setProperty("--_depth", dataNode.depth);
+        htmlRow.dataset.id = dataNode.id;
+        htmlRow.dataset.parentId = dataNode.parentId;
+        htmlRow.dataset.hasChildren = dataNode.children.length>0;
 
-        htmlRoot.appendChild(li);
+        htmlRoot.appendChild(htmlRow);
+
         if (dataNode.children && dataNode.children.length > 0) {
-            let nestedUl = document.createElement("UL");
-            li.appendChild(nestedUl);
-
             for (let child of dataNode.children) {
-                this.renderNode(nestedUl, child)
+                this.renderNode(htmlRoot, child)
             }
         }
 
