@@ -2,7 +2,19 @@ export default class Treeview {
     constructor(targetElement) {
         this.targetElement = targetElement;
     }
+    
+    static toggleChildrenVisibility(node, visible) {
+        if (node.dataset.hasChildren) {
+            let children = document.querySelectorAll(`[data-parent-id='${node.dataset.id}']`);
+            for (let child of children) {
+                child.style.display = visible ? "block" : "none";
+                if (child.dataset.hasChildren) {
+                    Treeview.toggleChildrenVisibility(child, visible);
+                }
+            }
+        }
 
+    }
     render(dataRoot) {
         this.renderNode(this.targetElement, dataRoot);
 
@@ -10,22 +22,10 @@ export default class Treeview {
         lis.forEach(
             li => {
                 li.addEventListener("click", (e) => {
-                    function toggleChildrenVisibility(node, visible) {
-                        if (node.dataset.hasChildren) {
-                            let children = document.querySelectorAll(`[data-parent-id='${node.dataset.id}']`);
-                            for (let child of children) {
-                                child.style.display = visible ? "block" : "none";
-                                if (child.dataset.hasChildren) {
-                                    toggleChildrenVisibility(child, visible);
-                                }
-                            }
-                        }
-
-                    }
                     let wrapped = li.classList.toggle("wrapped");
-                    toggleChildrenVisibility(li, !wrapped);
-                    // e.stopPropagation();
+                    Treeview.toggleChildrenVisibility(li, !wrapped);
                 });
+                
                 li.addEventListener('mouseover', () => {
                     let parentId = li.dataset.parentId;
                     if (!parentId) return;
