@@ -2,32 +2,45 @@
     ul {
         padding-inline-start: 1.5rem;
     }
+
     li {
         list-style: none;
     }
 
-    ul li:before {    
+    ul li:before {
         font-family: 'FontAwesome';
         content: '\f0d7';
-        margin:0 5px 0 -15px;
+        margin: 0 5px 0 -15px;
         color: #f00;
     }
 
-    
+
     li:has(li).wrapped:before {
         content: '\f0da';
     }
 
-    ul > li:not(:has(li)):before  {
+    ul>li:not(:has(li)):before {
         content: '-';
     }
-    
-    .wrapped > * {
+
+    .wrapped>* {
         display: none;
-        animation: disappear 0.5s;
+        /* animation: disappear 0.3s; */
     }
-
-
+    
+    li.hoveredParent {
+        color: coral;
+        position: absolute;
+        top: 0px;
+    }
+    
+    li.hoveredParent > ul {
+        color: white;
+    }
+    
+    li:not(:has(li)):hover {
+        color: lime;
+    }
 }
 
 @keyframes disappear {
