@@ -1,6 +1,21 @@
 export default class Treeview {
     constructor(targetElement) {
         this.targetElement = targetElement;
+
+        this.columnsLabels = {};
+        this.columnsLabels["grouptotal"] = "cardGrouptotal";
+        this.columnsLabels["id"] = "";
+        this.columnsLabels["name"] = "";
+        this.columnsLabels["personalvolume"] = "personalvolume";
+        this.columnsLabels["unpayedOrders"] = "cardUnpaidOrders";
+        this.columnsLabels["nso"] = "nso";
+        this.columnsLabels["maxzr"] = "maxzr";
+        this.columnsLabels["monthNoVolume"] = "monthNoVolume";
+        this.columnsLabels["status"] = "cardStatus";
+        this.columnsLabels["title"] = "rawtitle";
+        this.columnsLabels["maxtitle"] = "cardMaxtitle";
+        this.columnsLabels["titlenotclosedmonths"] = "";
+        this.columnsLabels["overallstructuretotal"] = "cardOverallstructuretotal";
     }
     
     static toggleChildrenVisibility(node, visible) {

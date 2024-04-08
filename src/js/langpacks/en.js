@@ -59,6 +59,10 @@ export default {
     "cardGrouptotal" : "Group volume",
     "cardOverallstructuretotal" : "Overall structure total",
     "cardnso" : "Cumulative volume",
+    "cardMaxtitle": "MCR (Maximum Confirmed Rank)",
+    "cardStatus": "Club Member Status",
+    "": "",
+    "": "",
     
     "selectFile": "Select the report file",
     "directorsOnly": "Directors only",
