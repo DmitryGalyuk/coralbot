@@ -26,7 +26,7 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     lang = request_body['lang'] or "by"
     reporttype = request_body['reporttype']
     period = request_body['period']
-    
+
     # if req.headers["origin"] != "http://127.0.0.1:5500":
     #     return func.HttpResponse("Not found", status_code=404)
 
@@ -46,13 +46,13 @@ Runs daily, fetches the Lena's report and uploads it into blob storage
 @app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True,
               use_monitor=False)
 def dailyReportFetch(myTimer: func.TimerRequest) -> None:
-    vault_uri = f"https://coralkeys.vault.azure.net"
+    vault_uri = "https://coralkeys.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
-    coral_creds = client.get_secret("coral-lena-creds")
+    coral_creds = client.get_secret("coral-lena-creds").value
     coral_creds = json.loads(coral_creds)
-    
+
     period = datetime.today().strftime('%Y%m')
     report = download_file(coral_creds["login"], coral_creds["password"], "en", "CDXPRep", period)
 
@@ -113,7 +113,7 @@ def download_file (login, password, lang, reporttype, period):
     logging.debug("%s: %s", r.status_code, r.text)
     if r.status_code != 200:
         return {"result":r.text, "status_code":r.status_code}
-    
+
     content = r.content
     result = re.sub(b".*</script>", b"", content, 0, re.DOTALL)
 
