@@ -51,15 +51,15 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
     coral_creds = client.get_secret("coral-lena-creds")
-    logging.debug(coral_creds)
-    logging.debug(coral_creds.value)
-    coral_creds = json.loads(coral_creds)
+    print(coral_creds)
+    print(coral_creds.value)
+    coral_creds = json.loads(coral_creds.value)
 
     period = datetime.today().strftime('%Y%m')
     report = download_file(coral_creds["login"], coral_creds["password"], "en", "CDXPRep", period)
 
     connection_string = client.get_secret("coral-blob-connectionstring")
-    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string.value)
 
     container_client = blob_service_client.get_container_client("reportsstore")
 
