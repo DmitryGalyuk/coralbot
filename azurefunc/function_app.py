@@ -50,7 +50,9 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
-    coral_creds = client.get_secret("coral-lena-creds").value
+    coral_creds = client.get_secret("coral-lena-creds")
+    logging.debug(coral_creds)
+    logging.debug(coral_creds.value)
     coral_creds = json.loads(coral_creds)
 
     period = datetime.today().strftime('%Y%m')
