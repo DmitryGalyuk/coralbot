@@ -2,9 +2,14 @@
 Coralometer backend
 '''
 import logging
-import azure.functions as func
-import requests
 import re
+import json
+from datetime import datetime
+import requests
+import azure.functions as func
+from azure.storage.blob import BlobServiceClient
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
@@ -28,6 +33,46 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     if not login or not password:
         return func.HttpResponse("No login or password provided", status_code=401)
 
+    result = download_file(login, password, lang, reporttype, period)
+
+    return func.HttpResponse(result["result"],
+                             status_code=result["status_code"],
+                             headers={ "Content-Disposition": result["content_disposition"] })
+
+
+'''
+Runs daily, fetches the Lena's report and uploads it into blob storage
+'''
+@app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True,
+              use_monitor=False)
+def dailyReportFetch(myTimer: func.TimerRequest) -> None:
+    vault_uri = f"https://coralkeys.vault.azure.net"
+    credential = DefaultAzureCredential()
+    client = SecretClient(vault_url=vault_uri, credential=credential)
+
+    coral_creds = client.get_secret("coral-lena-creds")
+    coral_creds = json.loads(coral_creds)
+    
+    period = datetime.today().strftime('%Y%m')
+    report = download_file(coral_creds["login"], coral_creds["password"], "en", "CDXPRep", period)
+
+    connection_string = client.get_secret("coral-blob-connectionstring")
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+
+    container_client = blob_service_client.get_container_client("reportsstore")
+
+    # Upload the file content to the blob
+    blob_client = container_client.get_blob_client(datetime.today().strftime('%Y-%m-%d.xslx'))
+    blob_client.upload_blob(report["result"], overwrite=True)
+
+    logging.info('Python timer trigger function executed.')
+
+
+'''
+Download report as blob from coral site
+returns object {status_code, content_disposition, result}
+'''
+def download_file (login, password, lang, reporttype, period):
     logging.debug('calling coral.club root')
     r = requests.get(f"https://{lang}.coral.club", timeout=10)
     logging.debug("%s: %s", r.status_code, r.text)
@@ -59,7 +104,7 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
                       , data=f"BACK_URL=%2F&access=yes&login={login}&password={password}&userAuth=false")
     logging.debug("%s: %s", r.status_code, r.text)
     if r.status_code != 200:
-        return func.HttpResponse(body=r.text, status_code=r.status_code)
+        return {"result": r.text, "status_code": r.status_code}
 
 
     logging.debug("calling reports_xls2.php")
@@ -67,10 +112,14 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
                      , cookies=cookies, timeout=10, headers=headers)
     logging.debug("%s: %s", r.status_code, r.text)
     if r.status_code != 200:
-        return func.HttpResponse(body=r.text, status_code=r.status_code)
+        return {"result":r.text, "status_code":r.status_code}
     
     content = r.content
     result = re.sub(b".*</script>", b"", content, 0, re.DOTALL)
 
     print(r.headers["content-disposition"])
-    return func.HttpResponse(result, status_code=r.status_code, headers={"Content-Disposition": r.headers["Content-Disposition"]})
+    return {
+        "result": result, 
+        "status_code": r.status_code, 
+        "content_disposition": r.headers["Content-Disposition"]
+    }
