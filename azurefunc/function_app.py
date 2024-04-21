@@ -51,8 +51,6 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
     coral_creds = client.get_secret("coral-lena-creds")
-    print(coral_creds)
-    print(coral_creds.value)
     coral_creds = json.loads(coral_creds.value)
 
     period = datetime.today().strftime('%Y%m')
@@ -64,7 +62,7 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     container_client = blob_service_client.get_container_client("reportsstore")
 
     # Upload the file content to the blob
-    blob_client = container_client.get_blob_client(datetime.today().strftime('%Y-%m-%d.xslx'))
+    blob_client = container_client.get_blob_client(datetime.today().strftime('%Y-%m-%d.xlsx'))
     blob_client.upload_blob(report["result"], overwrite=True)
 
     logging.info('Python timer trigger function executed.')
