@@ -51,10 +51,7 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
     coral_creds = client.get_secret("coral-lena-creds")
-    logging.debug(coral_creds.value)
     coral_creds = json.loads(coral_creds.value)
-    logging.debug(coral_creds["login"])
-    logging.debug(coral_creds["password"])
 
     period = datetime.today().strftime('%Y%m')
     report = download_file(coral_creds["login"], coral_creds["password"], "en", "CDXPRep", period)
@@ -76,9 +73,9 @@ Download report as blob from coral site
 returns object {status_code, content_disposition, result}
 '''
 def download_file (login, password, lang, reporttype, period):
-    logging.debug('calling coral.club root')
+    logging.info('calling coral.club root')
     r = requests.get(f"https://{lang}.coral.club", timeout=10)
-    logging.debug("%s: %s", r.status_code, r.text)
+    logging.info("%s: %s", r.status_code, r.text)
 
     cookies = r.cookies
     cookies["CC_2019_LOGIN"] = login
@@ -101,19 +98,19 @@ def download_file (login, password, lang, reporttype, period):
 
     }
 
-    logging.debug("calling auth.php")
+    logging.info("calling auth.php")
     r = requests.post(f'https://{lang}.coral.club/ajax/auth.php?access=yes&login={login}&password={password}'
                       , cookies=cookies, timeout=10, headers=headers
                       , data=f"BACK_URL=%2F&access=yes&login={login}&password={password}&userAuth=false")
-    logging.debug("%s: %s", r.status_code, r.text)
+    logging.info("%s: %s", r.status_code, r.text)
     if r.status_code != 200:
         return {"result": r.text, "status_code": r.status_code}
 
 
-    logging.debug("calling reports_xls2.php")
+    logging.info("calling reports_xls2.php")
     r = requests.get(f"https://{lang}.coral.club/personal-new/structure/reports/reports_xls2.php?p1={reporttype}&p2={period}"
                      , cookies=cookies, timeout=10, headers=headers)
-    logging.debug("%s: %s", r.status_code, r.text)
+    logging.info("%s: %s", r.status_code, r.text)
     if r.status_code != 200:
         return {"result":r.text, "status_code":r.status_code}
 
