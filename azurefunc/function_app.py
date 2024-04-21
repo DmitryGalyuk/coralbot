@@ -51,7 +51,10 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     client = SecretClient(vault_url=vault_uri, credential=credential)
 
     coral_creds = client.get_secret("coral-lena-creds")
+    print(coral_creds.value)
     coral_creds = json.loads(coral_creds.value)
+    print(coral_creds["login"])
+    print(coral_creds["password"])
 
     period = datetime.today().strftime('%Y%m')
     report = download_file(coral_creds["login"], coral_creds["password"], "en", "CDXPRep", period)
