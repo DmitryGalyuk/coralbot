@@ -13,11 +13,11 @@ from azure.identity import DefaultAzureCredential
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
-'''
-Fetches the report from coral.club server
-'''
 @app.route(route="coralReportFetch")
 def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
+    '''
+    Fetches the report from coral.club server
+    '''
     logging.info("%s invoked", "coralReportFetch")
 
     request_body = req.get_json() if req.get_body() else req.params
@@ -40,12 +40,12 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
                              headers={ "Content-Disposition": result["content_disposition"] })
 
 
-'''
-Runs daily, fetches the Lena's report and uploads it into blob storage
-'''
 @app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True,
               use_monitor=False)
 def dailyReportFetch(myTimer: func.TimerRequest) -> None:
+    '''
+    Runs daily, fetches the Lena's report and uploads it into blob storage
+    '''
     vault_uri = "https://coralkeys.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=vault_uri, credential=credential)
@@ -68,11 +68,11 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
 
 
-'''
-Download report as blob from coral site
-returns object {status_code, content_disposition, result}
-'''
 def download_file (login, password, lang, reporttype, period):
+    '''
+    Download report as blob from coral site
+    returns object {status_code, content_disposition, result}
+    '''
     logging.info('calling coral.club root')
     r = requests.get(f"https://{lang}.coral.club", timeout=10)
     logging.info("%s: %s", r.status_code, r.text)
