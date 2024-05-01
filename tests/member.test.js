@@ -1,8 +1,8 @@
 import { test, expect, beforeAll, beforeEach } from '@jest/globals'
-import Member from "../src/js/member"
-import ReportParses from "../src/js/parser"
+import Member from "../web/js/member"
+import ReportParses from "../web/js/parser"
 import ExcelJS from 'exceljs';
-import * as utils from "../src/js/utils"
+import * as utils from "../web/js/utils"
 import fs from "fs";
 
 let root = [];

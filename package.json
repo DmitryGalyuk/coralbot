@@ -15,7 +15,7 @@
     "testEnvironment": "jest-environment-jsdom",
     "resetMocks": false,
     "roots": [
-      "<rootDir>/src",
+      "<rootDir>/web",
       "<rootDir>/tests"
     ],
     "moduleNameMapper": {
