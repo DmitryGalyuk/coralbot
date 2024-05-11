@@ -5,3 +5,4 @@ package-lock.json
 **/*.xlsx
 **/*.drawio.bkp
 *.sqlproj
+__azurite*.*
