@@ -1,0 +1,5 @@
+CREATE USER [coralApp] FOR EXTERNAL PROVIDER;
+
+
+GO
+

@@ -1,0 +1,1 @@
+alter database coral collate Latin1_General_100_CS_AS_WS_SC_UTF8

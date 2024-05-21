@@ -1,7 +1,8 @@
 from pandas import *
+import io
 
-def report_to_table(report):
-    df_raw: DataFrame = read_excel(report, skiprows=6, na_values=[' '])
+def report_to_table(report: bytes):
+    df_raw: DataFrame = read_excel(io.BytesIO(report), skiprows=6, na_values=[' '])
 
     excel2Field = {}
     excel2Field["#"] = "rownum"
@@ -12,7 +13,7 @@ def report_to_table(report):
     excel2Field["Rank"] = "Rank"
     excel2Field["P"] = "Pending"
     excel2Field["PV (Personal Volume)"] = "Personal"
-    excel2Field["PVG"] = "Group"
+    excel2Field["PVG"] = "GroupVolume"
     excel2Field["MCR (Maximum Confirmed Rank)"] = "maxrank"
     excel2Field["Number of months with zero Volume Points accrued"] = "zeroMonths"
     excel2Field["Club Member Status"] = "status"

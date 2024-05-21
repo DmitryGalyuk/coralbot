@@ -2,7 +2,7 @@ data/**
 node_modules/**
 package-lock.json
 .vscode/settings.json
-**/*.xlsx
+.vscode/launch.json
 **/*.drawio.bkp
 *.sqlproj
 __azurite*.*

@@ -10,7 +10,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 
 from downloadreport import download_file
-from reportsprocessing import process_reports
+from reportsprocessing import process_report
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
@@ -69,11 +69,12 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
 
 
-@app.route(route="coralReportFetch")
-def process_dowloaded_reports_func():
+@app.route(route="processExcel")
+def process_dowloaded_reports_func(req: func.HttpRequest) -> func.HttpResponse:
     '''
     Scan for downloaded reports, extract data, load to DB and copy/move processed file to folder with processed files
     '''
     logging.info("process_dowloaded_reports_func")
-    process_reports()
+    file_name = req.get_json()["file_name"]
+    process_report(file_name)
 
