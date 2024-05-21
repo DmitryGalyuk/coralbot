@@ -7,15 +7,6 @@
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.projectLanguageModel": 2,
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "name": "coral-db",
-            "group": "coral",
-            "database": "${workspaceFolder:coralbot}/coral.db"
-        }
-    ],
     "dataworkspace.excludedProjects": [
         "coral/coral.sqlproj"
     ]
