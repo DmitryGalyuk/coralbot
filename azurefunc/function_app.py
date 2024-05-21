@@ -80,3 +80,5 @@ def process_dowloaded_reports_func(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(status_code=200)
     except:
         return func.HttpResponse(status_code=500)
+
+
