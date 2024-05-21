@@ -1,6 +1,5 @@
 ''' Coral report Azure hanldling '''
 
-import os
 import json
 from typing import List
 from azure.storage.blob import BlobServiceClient, ContainerClient
@@ -25,7 +24,7 @@ def container_client(container: str) -> ContainerClient:
     ''' Creates the client to specific Azure Blob Storage Container '''
     if container in _container_client:
         return _container_client[container]
-    
+   
     vault_uri = "https://coralkeys.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=vault_uri, credential=credential)
@@ -52,6 +51,3 @@ def save_blob(container_name, file_name, data: bytes):
     ''' Uploads the blob to Azure Blob Storage container '''
     container = container_client(container_name)
     container.upload_blob(file_name, data, blob_type="BlockBlob")
-
-
-process_report("2024-05-25.xlsx")

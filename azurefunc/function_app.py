@@ -16,9 +16,8 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 @app.route(route="coralReportFetch")
 def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
-    '''
-    Fetches the report from coral.club server
-    '''
+    ''' Fetches the report from coral.club server '''
+    
     logging.info("%s invoked", "coralReportFetch")
 
     request_body = req.get_json() if req.get_body() else req.params
