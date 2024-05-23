@@ -79,4 +79,5 @@ def process_dowloaded_reports_func(req: func.HttpRequest) -> func.HttpResponse:
         process_report(file_name)
         return func.HttpResponse(status_code=200)
     except:
+        logging.exception("process_dowloaded_reports_func")
         return func.HttpResponse(status_code=500)
