@@ -9,3 +9,5 @@ azure-identity
 azure-keyvault-secrets
 pandas
 openpyxl
+pyarrow
+fastparquet
