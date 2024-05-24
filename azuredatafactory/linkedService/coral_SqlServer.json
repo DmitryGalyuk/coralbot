@@ -1,0 +1,25 @@
+{
+	"name": "coral_SqlServer",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "coralsql.database.windows.net",
+			"database": "coral",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"hostNameInCertificate": "",
+			"authenticationType": "SQL",
+			"userName": "dima",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "corar_keyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "coral-db-dima-pass"
+			}
+		}
+	}
+}

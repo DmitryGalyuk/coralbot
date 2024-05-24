@@ -1,0 +1,9 @@
+{
+	"name": "coraldatafactory",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "679972c2-857e-47d2-8f9a-da3e0afa89d6",
+		"tenantId": "4e9d6226-3d74-4d84-b473-bed66f1d0be9"
+	}
+}

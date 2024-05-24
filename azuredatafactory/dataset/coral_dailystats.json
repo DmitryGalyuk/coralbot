@@ -1,0 +1,65 @@
+{
+	"name": "coral_dailystats",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "coral_SqlServer",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "gen",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ParentId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Rank",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Pending",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Personal",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Overall",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "DateAdded",
+				"type": "date"
+			},
+			{
+				"name": "GroupVolume",
+				"type": "float",
+				"precision": 15
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dailystats"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

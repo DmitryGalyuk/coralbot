@@ -1,0 +1,61 @@
+{
+	"name": "InputParquetReports",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "processedreports"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "gen",
+				"type": "INT64"
+			},
+			{
+				"name": "Id",
+				"type": "INT64"
+			},
+			{
+				"name": "Name",
+				"type": "UTF8"
+			},
+			{
+				"name": "ParentId",
+				"type": "INT64"
+			},
+			{
+				"name": "Rank",
+				"type": "UTF8"
+			},
+			{
+				"name": "Pending",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Personal",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "GroupVolume",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "Overall",
+				"type": "DOUBLE"
+			},
+			{
+				"name": "__index_level_0__",
+				"type": "INT64"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

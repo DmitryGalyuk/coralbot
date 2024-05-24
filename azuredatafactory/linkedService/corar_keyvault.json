@@ -1,0 +1,11 @@
+{
+	"name": "corar_keyvault",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://coralkeys.vault.azure.net/"
+		}
+	}
+}
