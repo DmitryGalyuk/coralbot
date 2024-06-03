@@ -40,8 +40,8 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
                              headers={ "Content-Disposition": result["content_disposition"] })
 
 
-@app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True,
-              use_monitor=False)
+# @app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True, use_monitor=False)
+@app.route(route="dailyFetch")
 def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     '''
     Runs daily, fetches the Lena's report and uploads it into blob storage
