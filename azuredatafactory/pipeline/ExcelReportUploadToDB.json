@@ -264,7 +264,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"functionName": "dailyReportFetch",
+					"functionName": "dailyFetch",
 					"method": "GET"
 				},
 				"linkedServiceName": {
