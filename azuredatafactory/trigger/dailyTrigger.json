@@ -16,8 +16,8 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2024-06-04T02:00:00",
-				"timeZone": "UTC+12",
+				"startTime": "2024-06-04T02:00:00Z",
+				"timeZone": "UTC",
 				"schedule": {
 					"minutes": [
 						0
