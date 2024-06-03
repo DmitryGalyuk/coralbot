@@ -44,7 +44,7 @@
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
 							"wildcardFileName": {
-								"value": "@concat(pipeline().parameters.file_name, '.parquet')",
+								"value": "@concat(variables('file_name'), '.parquet')",
 								"type": "Expression"
 							},
 							"enablePartitionDiscovery": false
@@ -222,6 +222,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -235,7 +241,7 @@
 				"typeProperties": {
 					"functionName": "processExcel",
 					"body": {
-						"value": "@concat('{\"file_name\": \"', pipeline().parameters.file_name, '\"}')",
+						"value": "@concat('{\"file_name\": \"', variables('file_name'), '\"}')",
 						"type": "Expression"
 					},
 					"method": "POST"
@@ -265,11 +271,28 @@
 					"referenceName": "coral_function",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "file_name",
+					"value": {
+						"value": "@concat(formatDateTime(pipeline().TriggerTime, 'yyyy-MM-dd'), '.xlsx')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
-		"parameters": {
+		"variables": {
 			"file_name": {
-				"type": "string"
+				"type": "String"
 			}
 		},
 		"annotations": [],
