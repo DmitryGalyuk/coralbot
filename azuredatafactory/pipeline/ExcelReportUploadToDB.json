@@ -35,7 +35,7 @@
 							{
 								"name": "File_Name",
 								"value": {
-									"value": "@pipeline().parameters.file_name",
+									"value": "@variables('file_name')",
 									"type": "Expression"
 								}
 							}
