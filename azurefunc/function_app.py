@@ -42,7 +42,8 @@ def coralReportFetch(req: func.HttpRequest) -> func.HttpResponse:
 
 # @app.timer_trigger(schedule="0 0 2 * * *", arg_name="myTimer", run_on_startup=True, use_monitor=False)
 @app.route(route="dailyFetch")
-def dailyReportFetch(myTimer: func.TimerRequest) -> None:
+# def dailyReportFetch(myTimer: func.TimerRequest) -> None:
+def dailyReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     '''
     Runs daily, fetches the Lena's report and uploads it into blob storage
     '''
@@ -66,6 +67,8 @@ def dailyReportFetch(myTimer: func.TimerRequest) -> None:
     blob_client.upload_blob(report["result"], overwrite=True)
 
     logging.info('Python timer trigger function executed.')
+
+    return func.HttpResponse(status_code=200)
 
 
 @app.route(route="processExcel")
