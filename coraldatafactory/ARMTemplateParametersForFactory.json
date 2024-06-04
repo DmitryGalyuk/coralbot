@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "coraldatafactory"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"coral_function_functionKey": {
+			"value": ""
+		},
+		"coral_SqlServer_properties_typeProperties_server": {
+			"value": "coralsql.database.windows.net"
+		},
+		"coral_SqlServer_properties_typeProperties_database": {
+			"value": "coral"
+		},
+		"coral_SqlServer_properties_typeProperties_userName": {
+			"value": "dima"
+		},
+		"coral_function_properties_typeProperties_functionAppUrl": {
+			"value": "https://coralreportfetch.azurewebsites.net"
+		},
+		"corar_keyvault_properties_typeProperties_baseUrl": {
+			"value": "https://coralkeys.vault.azure.net/"
+		}
+	}
+}
