@@ -62,7 +62,7 @@
 										"type": "AzureBlobStorageReadSettings",
 										"recursive": true,
 										"wildcardFileName": {
-											"value": "@item().name",
+											"value": "@concat(item().name, '.parquet')",
 											"type": "Expression"
 										},
 										"enablePartitionDiscovery": false
@@ -245,6 +245,10 @@
 							"userProperties": [],
 							"typeProperties": {
 								"functionName": "processExcel",
+								"body": {
+									"value": "@concat('{\"file_name\": \"', item().name, '\"}')",
+									"type": "Expression"
+								},
 								"method": "POST"
 							},
 							"linkedServiceName": {
