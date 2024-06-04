@@ -224,7 +224,7 @@
 						]
 					},
 					{
-						"activity": "Set variable1",
+						"activity": "file_name",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -273,7 +273,7 @@
 				}
 			},
 			{
-				"name": "Set variable1",
+				"name": "file_name",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
