@@ -53,7 +53,7 @@
 										{
 											"name": "DateAdded",
 											"value": {
-												"value": "@utcNow()",
+												"value": "@replace(item().name, '.xlsx.parquet', '')",
 												"type": "Expression"
 											}
 										}
