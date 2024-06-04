@@ -53,7 +53,7 @@
 										{
 											"name": "DateAdded",
 											"value": {
-												"value": "@replace(item().name, '.xlsx.parquet', '')",
+												"value": "@replace(item().name, '.xlsx', '')",
 												"type": "Expression"
 											}
 										}
