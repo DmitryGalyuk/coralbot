@@ -3,11 +3,11 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "For each parquet",
+				"name": "For each excel",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "List Parquet files",
+						"activity": "List Excel files",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -23,7 +23,14 @@
 						{
 							"name": "upload to coral DB",
 							"type": "Copy",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "excel2parquet",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -223,12 +230,33 @@
 									"type": "DatasetReference"
 								}
 							]
+						},
+						{
+							"name": "excel2parquet",
+							"type": "AzureFunctionActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"functionName": "processExcel",
+								"method": "POST"
+							},
+							"linkedServiceName": {
+								"referenceName": "coral_function",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
 			},
 			{
-				"name": "List Parquet files",
+				"name": "List Excel files",
 				"type": "GetMetadata",
 				"dependsOn": [],
 				"policy": {
@@ -241,7 +269,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "InputParquetReports",
+						"referenceName": "InputExcels",
 						"type": "DatasetReference"
 					},
 					"fieldList": [
@@ -251,11 +279,21 @@
 						"type": "AzureBlobStorageReadSettings",
 						"recursive": true,
 						"enablePartitionDiscovery": false
-					},
-					"formatSettings": {
-						"type": "ParquetReadSettings"
 					}
 				}
+			},
+			{
+				"name": "Azure Function1",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
 			}
 		],
 		"annotations": [],
