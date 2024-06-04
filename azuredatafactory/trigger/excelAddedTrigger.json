@@ -3,17 +3,7 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
-		"pipelines": [
-			{
-				"pipelineReference": {
-					"referenceName": "ExcelReportUploadToDB",
-					"type": "PipelineReference"
-				},
-				"parameters": {
-					"file_name": "@triggerBody().fileName"
-				}
-			}
-		],
+		"pipelines": [],
 		"type": "BlobEventsTrigger",
 		"typeProperties": {
 			"blobPathBeginsWith": "/reportsstore/blobs/",
