@@ -210,7 +210,18 @@
 												"physicalType": "date"
 											}
 										},
-										null
+										{
+											"source": {
+												"name": "rownum",
+												"type": "Int64",
+												"physicalType": "INT64"
+											},
+											"sink": {
+												"name": "rownum",
+												"type": "Int32",
+												"physicalType": "int"
+											}
+										}
 									],
 									"typeConversion": true,
 									"typeConversionSettings": {
