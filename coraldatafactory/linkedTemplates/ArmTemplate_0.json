@@ -494,6 +494,18 @@
 											"type": "DateTime",
 											"physicalType": "date"
 										}
+									},
+									{
+										"source": {
+											"name": "rownum",
+											"type": "Int64",
+											"physicalType": "INT64"
+										},
+										"sink": {
+											"name": "rownum",
+											"type": "Int32",
+											"physicalType": "int"
+										}
 									}
 								],
 								"typeConversion": true,
@@ -826,6 +838,18 @@
 														"name": "DateAdded",
 														"type": "DateTime",
 														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "rownum",
+														"type": "Int64",
+														"physicalType": "INT64"
+													},
+													"sink": {
+														"name": "rownum",
+														"type": "Int32",
+														"physicalType": "int"
 													}
 												}
 											],
