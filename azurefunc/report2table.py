@@ -20,7 +20,7 @@ def report_to_table(report: bytes):
 
     df_renamed = df_raw.rename(columns=excel2Field)
 
-    df_neededColumns = df_renamed.drop(columns=["rownum", "cnv", "status", "maxrank", "zeroMonths"], errors="ignore")
+    df_neededColumns = df_renamed.drop(columns=["cnv", "status", "maxrank", "zeroMonths"], errors="ignore")
 
     df_noNA = df_neededColumns.dropna(subset=['Id'])
 
