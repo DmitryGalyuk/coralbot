@@ -209,7 +209,8 @@
 												"type": "DateTime",
 												"physicalType": "date"
 											}
-										}
+										},
+										null
 									],
 									"typeConversion": true,
 									"typeConversionSettings": {

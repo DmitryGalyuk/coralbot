@@ -16,6 +16,10 @@
 		},
 		"schema": [
 			{
+				"name": "rownum",
+				"type": "INT64"
+			},
+			{
 				"name": "gen",
 				"type": "INT64"
 			},
@@ -24,12 +28,12 @@
 				"type": "INT64"
 			},
 			{
-				"name": "Name",
-				"type": "UTF8"
-			},
-			{
 				"name": "ParentId",
 				"type": "INT64"
+			},
+			{
+				"name": "Name",
+				"type": "UTF8"
 			},
 			{
 				"name": "Rank",
