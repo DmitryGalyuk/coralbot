@@ -73,6 +73,18 @@
 									"type": "String",
 									"physicalType": "String"
 								}
+							},
+							{
+								"source": {
+									"name": "DateAdded",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DateAdded",
+									"type": "String",
+									"physicalType": "String"
+								}
 							}
 						],
 						"typeConversion": true,
