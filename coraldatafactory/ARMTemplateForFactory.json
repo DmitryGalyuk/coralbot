@@ -41,6 +41,130 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/CopyIndividualProgress')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "db2csv",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "select * from CoralView where ParentId = -1",
+								"queryTimeout": "02:00:00",
+								"isolationLevel": "ReadCommitted",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "FlattenHierarchy"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Personal",
+											"type": "Double",
+											"physicalType": "float"
+										},
+										"sink": {
+											"name": "Personal",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Overall",
+											"type": "Double",
+											"physicalType": "float"
+										},
+										"sink": {
+											"name": "Overall",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DateAdded",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "DateAdded",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "coral_dailystats",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ExcelReportUploadToDB')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -348,6 +472,39 @@
 								"type": "Expression"
 							}
 						}
+					},
+					{
+						"name": "Regenerate the structure",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Parquet2DB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "coral_SqlServer",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": "delete from structure;\n\nWITH \n    LatestDate (d) as (\n        SELECT max(DateAdded)\n        from CoralView\n    ),\n    ParentPathCTE (Id, ParentId, Name, ParentPath) AS (\n        SELECT Id, ParentId, Name, CAST(Name AS NVARCHAR(MAX)) AS ParentPath\n        FROM CoralView\n        WHERE ParentId = -1\n            and DateAdded = (select d from LatestDate)\n        UNION ALL\n        SELECT c.Id, c.ParentId, c.Name, p.ParentPath + ' - ' + c.Name\n        FROM CoralView c\n        INNER JOIN ParentPathCTE p ON c.ParentId = p.Id\n            and DateAdded = (select d from LatestDate)\n    )\n\ninsert into structure\nSELECT Id, Name, ParentPath\nFROM ParentPathCTE;\n"
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
 					}
 				],
 				"policy": {
@@ -364,7 +521,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/InputParquetReports')]",
 				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
-				"[concat(variables('factoryId'), '/linkedServices/coral_function')]"
+				"[concat(variables('factoryId'), '/linkedServices/coral_function')]",
+				"[concat(variables('factoryId'), '/linkedServices/coral_SqlServer')]"
 			]
 		},
 		{
@@ -685,6 +843,34 @@
 				"[concat(variables('factoryId'), '/datasets/InputParquetReports')]",
 				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
 				"[concat(variables('factoryId'), '/linkedServices/coral_function')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "lena.csv",
+						"container": "memberprogress"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
