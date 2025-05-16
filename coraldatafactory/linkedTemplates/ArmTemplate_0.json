@@ -62,12 +62,12 @@
 				"type": "AzureFunction",
 				"typeProperties": {
 					"functionAppUrl": "[parameters('coral_function_properties_typeProperties_functionAppUrl')]",
+					"authentication": "MSI",
+					"resourceId": "f1f492d1-ad11-4504-a071-9246d50970aa",
 					"functionKey": {
 						"type": "SecureString",
 						"value": "[parameters('coral_function_functionKey')]"
-					},
-					"authentication": "MSI",
-					"resourceId": "f1f492d1-ad11-4504-a071-9246d50970aa"
+					}
 				}
 			},
 			"dependsOn": []
@@ -84,6 +84,34 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "lena.csv",
+						"container": "memberprogress"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/InputExcels')]",
@@ -129,6 +157,10 @@
 				},
 				"schema": [
 					{
+						"name": "rownum",
+						"type": "INT64"
+					},
+					{
 						"name": "gen",
 						"type": "INT64"
 					},
@@ -137,12 +169,12 @@
 						"type": "INT64"
 					},
 					{
-						"name": "Name",
-						"type": "UTF8"
-					},
-					{
 						"name": "ParentId",
 						"type": "INT64"
+					},
+					{
+						"name": "Name",
+						"type": "UTF8"
 					},
 					{
 						"name": "Rank",
@@ -210,7 +242,6 @@
 					"database": "[parameters('coral_SqlServer_properties_typeProperties_database')]",
 					"encrypt": "mandatory",
 					"trustServerCertificate": false,
-					"hostNameInCertificate": "",
 					"authenticationType": "SQL",
 					"userName": "[parameters('coral_SqlServer_properties_typeProperties_userName')]",
 					"password": {
@@ -294,6 +325,130 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/coral_SqlServer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CopyIndividualProgress')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "db2csv",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "select * from CoralView where ParentId = -1",
+								"queryTimeout": "02:00:00",
+								"isolationLevel": "ReadCommitted",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "FlattenHierarchy"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Personal",
+											"type": "Double",
+											"physicalType": "float"
+										},
+										"sink": {
+											"name": "Personal",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Overall",
+											"type": "Double",
+											"physicalType": "float"
+										},
+										"sink": {
+											"name": "Overall",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DateAdded",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "DateAdded",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "coral_dailystats",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]"
 			]
 		},
 		{
@@ -491,6 +646,18 @@
 											"type": "DateTime",
 											"physicalType": "date"
 										}
+									},
+									{
+										"source": {
+											"name": "rownum",
+											"type": "Int64",
+											"physicalType": "INT64"
+										},
+										"sink": {
+											"name": "rownum",
+											"type": "Int32",
+											"physicalType": "int"
+										}
 									}
 								],
 								"typeConversion": true,
@@ -592,6 +759,39 @@
 								"type": "Expression"
 							}
 						}
+					},
+					{
+						"name": "Regenerate the structure",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Parquet2DB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "coral_SqlServer",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": "delete from structure;\n\nWITH \n    LatestDate (d) as (\n        SELECT max(DateAdded)\n        from CoralView\n    ),\n    ParentPathCTE (Id, ParentId, Name, ParentPath) AS (\n        SELECT Id, ParentId, Name, CAST(Name AS NVARCHAR(MAX)) AS ParentPath\n        FROM CoralView\n        WHERE ParentId = -1\n            and DateAdded = (select d from LatestDate)\n        UNION ALL\n        SELECT c.Id, c.ParentId, c.Name, p.ParentPath + ' - ' + c.Name\n        FROM CoralView c\n        INNER JOIN ParentPathCTE p ON c.ParentId = p.Id\n            and DateAdded = (select d from LatestDate)\n    )\n\ninsert into structure\nSELECT Id, Name, ParentPath\nFROM ParentPathCTE;\n"
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
 					}
 				],
 				"policy": {
@@ -608,7 +808,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/InputParquetReports')]",
 				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
-				"[concat(variables('factoryId'), '/linkedServices/coral_function')]"
+				"[concat(variables('factoryId'), '/linkedServices/coral_function')]",
+				"[concat(variables('factoryId'), '/linkedServices/coral_SqlServer')]"
 			]
 		},
 		{
@@ -618,11 +819,11 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "For each parquet",
+						"name": "For each excel",
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "List Parquet files",
+								"activity": "List Excel files",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -631,14 +832,21 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('List Parquet files').output.childItems",
+								"value": "@activity('List Excel files').output.childItems",
 								"type": "Expression"
 							},
 							"activities": [
 								{
 									"name": "upload to coral DB",
 									"type": "Copy",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "excel2parquet",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -661,7 +869,7 @@
 												{
 													"name": "DateAdded",
 													"value": {
-														"value": "@utcNow()",
+														"value": "@replace(item().name, '.xlsx', '')",
 														"type": "Expression"
 													}
 												}
@@ -670,7 +878,7 @@
 												"type": "AzureBlobStorageReadSettings",
 												"recursive": true,
 												"wildcardFileName": {
-													"value": "@item().name",
+													"value": "@concat(item().name, '.parquet')",
 													"type": "Expression"
 												},
 												"enablePartitionDiscovery": false
@@ -817,6 +1025,18 @@
 														"type": "DateTime",
 														"physicalType": "date"
 													}
+												},
+												{
+													"source": {
+														"name": "rownum",
+														"type": "Int64",
+														"physicalType": "INT64"
+													},
+													"sink": {
+														"name": "rownum",
+														"type": "Int32",
+														"physicalType": "int"
+													}
 												}
 											],
 											"typeConversion": true,
@@ -840,12 +1060,38 @@
 											"parameters": {}
 										}
 									]
+								},
+								{
+									"name": "excel2parquet",
+									"type": "AzureFunctionActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"functionName": "processExcel",
+										"body": {
+											"value": "@concat('{\"file_name\": \"', item().name, '\"}')",
+											"type": "Expression"
+										},
+										"headers": {},
+										"method": "POST"
+									},
+									"linkedServiceName": {
+										"referenceName": "coral_function",
+										"type": "LinkedServiceReference"
+									}
 								}
 							]
 						}
 					},
 					{
-						"name": "List Parquet files",
+						"name": "List Excel files",
 						"type": "GetMetadata",
 						"dependsOn": [],
 						"policy": {
@@ -858,7 +1104,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "InputParquetReports",
+								"referenceName": "InputExcels",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -869,9 +1115,6 @@
 								"type": "AzureBlobStorageReadSettings",
 								"recursive": true,
 								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "ParquetReadSettings"
 							}
 						}
 					}
@@ -883,8 +1126,10 @@
 				"lastPublishTime": "2024-05-23T16:42:38Z"
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/InputExcels')]",
 				"[concat(variables('factoryId'), '/datasets/InputParquetReports')]",
-				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]"
+				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
+				"[concat(variables('factoryId'), '/linkedServices/coral_function')]"
 			]
 		},
 		{

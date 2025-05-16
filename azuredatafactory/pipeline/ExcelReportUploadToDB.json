@@ -191,6 +191,18 @@
 									"type": "DateTime",
 									"physicalType": "date"
 								}
+							},
+							{
+								"source": {
+									"name": "rownum",
+									"type": "Int64",
+									"physicalType": "INT64"
+								},
+								"sink": {
+									"name": "rownum",
+									"type": "Int32",
+									"physicalType": "int"
+								}
 							}
 						],
 						"typeConversion": true,
@@ -287,6 +299,39 @@
 						"value": "@concat(formatDateTime(pipeline().TriggerTime, 'yyyy-MM-dd'), '.xlsx')",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "Regenerate the structure",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Parquet2DB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "coral_SqlServer",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "delete from structure;\n\nWITH \n    LatestDate (d) as (\n        SELECT max(DateAdded)\n        from CoralView\n    ),\n    ParentPathCTE (Id, ParentId, Name, ParentPath) AS (\n        SELECT Id, ParentId, Name, CAST(Name AS NVARCHAR(MAX)) AS ParentPath\n        FROM CoralView\n        WHERE ParentId = -1\n            and DateAdded = (select d from LatestDate)\n        UNION ALL\n        SELECT c.Id, c.ParentId, c.Name, p.ParentPath + ' - ' + c.Name\n        FROM CoralView c\n        INNER JOIN ParentPathCTE p ON c.ParentId = p.Id\n            and DateAdded = (select d from LatestDate)\n    )\n\ninsert into structure\nSELECT Id, Name, ParentPath\nFROM ParentPathCTE;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
 				}
 			}
 		],
