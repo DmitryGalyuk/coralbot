@@ -55,7 +55,7 @@ def dailyReportFetch(req: func.HttpRequest) -> func.HttpResponse:
     coral_creds = json.loads(coral_creds.value)
 
     period = datetime.today().strftime('%Y%m')
-    report = download_file(coral_creds["login"], coral_creds["password"], "us", "CDXPRep", period)
+    report = download_file(coral_creds["login"], coral_creds["password"], "gb", "CDXPRep", period)
 
     connection_string = client.get_secret("coral-blob-connectionstring")
     blob_service_client = BlobServiceClient.from_connection_string(connection_string.value)
