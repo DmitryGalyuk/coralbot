@@ -40,7 +40,7 @@ jobs:
         run: zip release.zip ./${{env.AZURE_FUNCTIONAPP_PACKAGE_PATH}}/* -r
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: |
