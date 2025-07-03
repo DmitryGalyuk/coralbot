@@ -56,8 +56,8 @@
 				"type": "DOUBLE"
 			},
 			{
-				"name": "__index_level_0__",
-				"type": "INT64"
+				"name": "StructurePending",
+				"type": "DOUBLE"
 			}
 		]
 	},

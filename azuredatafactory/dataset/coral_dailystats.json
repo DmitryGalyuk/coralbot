@@ -47,11 +47,25 @@
 				"precision": 15
 			},
 			{
+				"name": "GroupVolume",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "File_Name",
+				"type": "nvarchar"
+			},
+			{
 				"name": "DateAdded",
 				"type": "date"
 			},
 			{
-				"name": "GroupVolume",
+				"name": "rownum",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StructurePending",
 				"type": "float",
 				"precision": 15
 			}
