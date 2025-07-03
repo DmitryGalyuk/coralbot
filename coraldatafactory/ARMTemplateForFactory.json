@@ -957,8 +957,8 @@
 						"type": "DOUBLE"
 					},
 					{
-						"name": "__index_level_0__",
-						"type": "INT64"
+						"name": "StructurePending",
+						"type": "DOUBLE"
 					}
 				]
 			},
@@ -1041,11 +1041,25 @@
 						"precision": 15
 					},
 					{
+						"name": "GroupVolume",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "File_Name",
+						"type": "nvarchar"
+					},
+					{
 						"name": "DateAdded",
 						"type": "date"
 					},
 					{
-						"name": "GroupVolume",
+						"name": "rownum",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StructurePending",
 						"type": "float",
 						"precision": 15
 					}
