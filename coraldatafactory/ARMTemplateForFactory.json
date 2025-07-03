@@ -371,6 +371,16 @@
 											"type": "Int32",
 											"physicalType": "int"
 										}
+									},
+									{
+										"source": {
+											"name": "StructurePending"
+										},
+										"sink": {
+											"name": "StructurePending",
+											"type": "Double",
+											"physicalType": "float"
+										}
 									}
 								],
 								"typeConversion": true,
@@ -472,32 +482,6 @@
 								"type": "Expression"
 							}
 						}
-					},
-					{
-						"name": "Regenerate the structure",
-						"type": "Script",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"linkedServiceName": {
-							"referenceName": "coral_SqlServer",
-							"type": "LinkedServiceReference"
-						},
-						"typeProperties": {
-							"scripts": [
-								{
-									"type": "Query",
-									"text": "delete from structure;\n\nWITH \n    LatestDate (d) as (\n        SELECT max(DateAdded)\n        from CoralView\n    ),\n    ParentPathCTE (Id, ParentId, Name, ParentPath) AS (\n        SELECT Id, ParentId, Name, CAST(Name AS NVARCHAR(MAX)) AS ParentPath\n        FROM CoralView\n        WHERE ParentId = -1\n            and DateAdded = (select d from LatestDate)\n        UNION ALL\n        SELECT c.Id, c.ParentId, c.Name, p.ParentPath + ' - ' + c.Name\n        FROM CoralView c\n        INNER JOIN ParentPathCTE p ON c.ParentId = p.Id\n            and DateAdded = (select d from LatestDate)\n    )\n\ninsert into structure\nSELECT Id, Name, ParentPath\nFROM ParentPathCTE;\n"
-								}
-							],
-							"scriptBlockExecutionTimeout": "02:00:00"
-						}
 					}
 				],
 				"policy": {
@@ -514,8 +498,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/InputParquetReports')]",
 				"[concat(variables('factoryId'), '/datasets/coral_dailystats')]",
-				"[concat(variables('factoryId'), '/linkedServices/coral_function')]",
-				"[concat(variables('factoryId'), '/linkedServices/coral_SqlServer')]"
+				"[concat(variables('factoryId'), '/linkedServices/coral_function')]"
 			]
 		},
 		{
