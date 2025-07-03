@@ -203,6 +203,16 @@
 									"type": "Int32",
 									"physicalType": "int"
 								}
+							},
+							{
+								"source": {
+									"name": "StructurePending"
+								},
+								"sink": {
+									"name": "StructurePending",
+									"type": "Double",
+									"physicalType": "float"
+								}
 							}
 						],
 						"typeConversion": true,
