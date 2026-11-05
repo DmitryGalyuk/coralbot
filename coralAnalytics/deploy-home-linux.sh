@@ -12,8 +12,9 @@ usage() {
     cat <<'EOF'
 Usage: deploy-home-linux.sh [--bacpac FILE] [--schedule HH:MM]
 
-Builds and starts Coral Analytics, restores a SQL Server BACPAC, starts
-Superset, and installs a daily user-level systemd timer (default 02:00).
+Builds and starts Coral Analytics, starts Superset, and installs a daily
+user-level systemd timer (default 02:00). The existing database is left
+untouched unless --bacpac FILE is explicitly provided.
 EOF
 }
 
@@ -95,15 +96,12 @@ for key in POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD CORAL_LOGIN CORAL_PASSWOR
 done
 
 [[ -n "$POSTGRES_LOCAL_PORT" ]] || POSTGRES_LOCAL_PORT=5432
-[[ -n "$BACPAC_ARG" ]] || {
-    shopt -s nullglob
-    bacpac_files=("$ANALYTICS_DIR"/azure_db_backup/*.bacpac)
-    ((${#bacpac_files[@]} == 1)) || \
-        fail "Copy exactly one .bacpac file into coralAnalytics/azure_db_backup or use --bacpac"
-    BACPAC_ARG="${bacpac_files[0]}"
-}
-BACPAC="$(realpath -e -- "$BACPAC_ARG")"
-[[ "${BACPAC,,}" == *.bacpac ]] || fail "Input must be a .bacpac file"
+RESTORE_DATABASE=0
+if [[ -n "$BACPAC_ARG" ]]; then
+    BACPAC="$(realpath -e -- "$BACPAC_ARG")"
+    [[ "${BACPAC,,}" == *.bacpac ]] || fail "Input must be a .bacpac file"
+    RESTORE_DATABASE=1
+fi
 
 compose() {
     docker compose \
@@ -120,55 +118,59 @@ compose up -d --wait db
 
 db_container="$(compose ps -q db)"
 [[ -n "$db_container" ]] || fail "PostgreSQL container did not start"
-docker_network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$db_container")"
-[[ -n "$docker_network" ]] || fail "Could not determine the Compose network"
+if ((RESTORE_DATABASE)); then
+    docker_network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$db_container")"
+    [[ -n "$docker_network" ]] || fail "Could not determine the Compose network"
 
-SQL_CONTAINER="coral-bacpac-sql-$$"
-sql_alias="coral-bacpac-$$"
-sql_password="CoralTmp_$(openssl rand -hex 16)!A1"
-trap cleanup EXIT
+    SQL_CONTAINER="coral-bacpac-sql-$$"
+    sql_alias="coral-bacpac-$$"
+    sql_password="CoralTmp_$(openssl rand -hex 16)!A1"
+    trap cleanup EXIT
 
-docker run -d \
-    --platform linux/amd64 \
-    --name "$SQL_CONTAINER" \
-    --network "$docker_network" \
-    --network-alias "$sql_alias" \
-    -e ACCEPT_EULA=Y \
-    -e MSSQL_PID=Developer \
-    -e "MSSQL_SA_PASSWORD=$sql_password" \
-    mcr.microsoft.com/mssql/server:2022-latest >/dev/null
+    docker run -d \
+        --platform linux/amd64 \
+        --name "$SQL_CONTAINER" \
+        --network "$docker_network" \
+        --network-alias "$sql_alias" \
+        -e ACCEPT_EULA=Y \
+        -e MSSQL_PID=Developer \
+        -e "MSSQL_SA_PASSWORD=$sql_password" \
+        mcr.microsoft.com/mssql/server:2022-latest >/dev/null
 
-ready=0
-for _ in $(seq 1 90); do
-    if docker logs "$SQL_CONTAINER" 2>&1 | grep -q 'SQL Server is now ready for client connections'; then
-        ready=1
-        break
-    fi
-    if [[ "$(docker inspect --format '{{.State.Running}}' "$SQL_CONTAINER")" != true ]]; then
+    ready=0
+    for _ in $(seq 1 90); do
+        if docker logs "$SQL_CONTAINER" 2>&1 | grep -q 'SQL Server is now ready for client connections'; then
+            ready=1
+            break
+        fi
+        if [[ "$(docker inspect --format '{{.State.Running}}' "$SQL_CONTAINER")" != true ]]; then
+            docker logs "$SQL_CONTAINER" >&2
+            fail "Temporary SQL Server exited during startup"
+        fi
+        sleep 2
+    done
+    ((ready)) || {
         docker logs "$SQL_CONTAINER" >&2
-        fail "Temporary SQL Server exited during startup"
-    fi
-    sleep 2
-done
-((ready)) || {
-    docker logs "$SQL_CONTAINER" >&2
-    fail "Temporary SQL Server did not become ready in time"
-}
+        fail "Temporary SQL Server did not become ready in time"
+    }
 
-docker exec -i -e "SA_PASSWORD=$sql_password" "$SQL_CONTAINER" sh -c \
-    '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -b -i /dev/stdin' <<'SQL'
+    docker exec -i -e "SA_PASSWORD=$sql_password" "$SQL_CONTAINER" sh -c \
+        '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -b -i /dev/stdin' <<'SQL'
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
 EXEC sp_configure 'contained database authentication', 1;
 RECONFIGURE;
 SQL
 
-POSTGRES_URL="$(POSTGRES_USER="$POSTGRES_USER" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" POSTGRES_DB="$POSTGRES_DB" POSTGRES_LOCAL_PORT="$POSTGRES_LOCAL_PORT" python3 -c 'import os; from urllib.parse import quote; print("postgresql://{}:{}@localhost:{}/{}".format(quote(os.environ["POSTGRES_USER"], safe=""), quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_LOCAL_PORT"], quote(os.environ["POSTGRES_DB"], safe="")))')"
-SQLSERVER_URL="mssql://sa:${sql_password}@${sql_alias}:1433/master" \
-POSTGRES_URL="$POSTGRES_URL" \
-RESTORE_DOCKER_NETWORK="$docker_network" \
-PGLOADER_POSTGRES_HOST=db \
-python3 "$ANALYTICS_DIR/restore_bacpac.py" "$BACPAC" --confirm-database "$POSTGRES_DB"
+    POSTGRES_URL="$(POSTGRES_USER="$POSTGRES_USER" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" POSTGRES_DB="$POSTGRES_DB" POSTGRES_LOCAL_PORT="$POSTGRES_LOCAL_PORT" python3 -c 'import os; from urllib.parse import quote; print("postgresql://{}:{}@localhost:{}/{}".format(quote(os.environ["POSTGRES_USER"], safe=""), quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_LOCAL_PORT"], quote(os.environ["POSTGRES_DB"], safe="")))')"
+    SQLSERVER_URL="mssql://sa:${sql_password}@${sql_alias}:1433/master" \
+    POSTGRES_URL="$POSTGRES_URL" \
+    RESTORE_DOCKER_NETWORK="$docker_network" \
+    PGLOADER_POSTGRES_HOST=db \
+    python3 "$ANALYTICS_DIR/restore_bacpac.py" "$BACPAC" --confirm-database "$POSTGRES_DB"
+else
+    printf 'No --bacpac provided; leaving PostgreSQL data untouched.\n'
+fi
 
 compose --profile bi up -d --build superset
 

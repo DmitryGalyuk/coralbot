@@ -1,0 +1,14 @@
+database_name: coral
+sqlalchemy_uri: mssql+pymssql://ss:XXXXXXXXXX@coralsql.database.windows.net:1433/coral
+cache_timeout: null
+expose_in_sqllab: true
+allow_run_async: false
+allow_ctas: false
+allow_cvas: false
+allow_dml: false
+allow_file_upload: false
+extra: {}
+impersonate_user: false
+configuration_method: sqlalchemy_form
+uuid: bdb5f92e-b275-4aee-a20b-febd5ae7638f
+version: 1.0.0

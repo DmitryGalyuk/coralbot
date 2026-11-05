@@ -1,0 +1,116 @@
+slice_name: TodayValue
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number
+params:
+  datasource: 21__table
+  viz_type: big_number
+  x_axis: DateAdded
+  time_grain_sqla: P1D
+  metric:
+    expressionType: SIMPLE
+    column:
+      advanced_data_type: null
+      certification_details: null
+      certified_by: null
+      column_name: Overall
+      description: null
+      expression: null
+      filterable: true
+      groupby: true
+      id: 740
+      is_certified: false
+      is_dttm: false
+      python_date_format: null
+      type: FLOAT(53)
+      type_generic: 0
+      verbose_name: null
+      warning_markdown: null
+    aggregate: SUM
+    sqlExpression: null
+    datasourceWarning: false
+    hasCustomLabel: false
+    label: SUM(Overall)
+    optionName: metric_7rlbh97eub_3yku0cnthrm
+  adhoc_filters:
+  - expressionType: SIMPLE
+    subject: DateAdded
+    operator: TEMPORAL_RANGE
+    comparator: No filter
+    clause: WHERE
+    sqlExpression: null
+    isExtra: false
+    isNew: false
+    datasourceWarning: false
+    filterOptionName: filter_5kc8bkf521u_pioykbey58p
+  - expressionType: SIMPLE
+    subject: ParentId
+    operator: ==
+    operatorId: EQUALS
+    comparator: -1
+    clause: WHERE
+    sqlExpression: null
+    isExtra: false
+    isNew: false
+    datasourceWarning: false
+    filterOptionName: filter_ej3l2x8hleb_qhdci35cmjc
+  compare_lag: 30
+  compare_suffix: to month ago
+  show_timestamp: true
+  show_trend_line: true
+  start_y_axis_at_zero: true
+  color_picker:
+    r: 0
+    g: 122
+    b: 135
+    a: 1
+  header_font_size: 0.4
+  subheader_font_size: 0.15
+  y_axis_format: ~g
+  time_format: smart_date
+  rolling_type: None
+  extra_form_data: {}
+  dashboards:
+  - 9
+query_context: '{"datasource": {"id": 21, "type": "table"}, "force": false, "queries":
+  [{"filters": [{"col": "DateAdded", "op": "TEMPORAL_RANGE", "val": "No filter"},
+  {"col": "ParentId", "op": "==", "val": -1}], "extras": {"time_grain_sqla": "P1D",
+  "having": "", "where": ""}, "applied_time_extras": {}, "columns": [{"timeGrain":
+  "P1D", "columnType": "BASE_AXIS", "sqlExpression": "DateAdded", "label": "DateAdded",
+  "expressionType": "SQL"}], "metrics": [{"expressionType": "SIMPLE", "column": {"advanced_data_type":
+  null, "certification_details": null, "certified_by": null, "column_name": "Overall",
+  "description": null, "expression": null, "filterable": true, "groupby": true, "id":
+  740, "is_certified": false, "is_dttm": false, "python_date_format": null, "type":
+  "FLOAT(53)", "type_generic": 0, "verbose_name": null, "warning_markdown": null},
+  "aggregate": "SUM", "sqlExpression": null, "datasourceWarning": false, "hasCustomLabel":
+  false, "label": "SUM(Overall)", "optionName": "metric_7rlbh97eub_3yku0cnthrm"}],
+  "annotation_layers": [], "series_limit": 0, "order_desc": true, "url_params": {},
+  "custom_params": {}, "custom_form_data": {}, "post_processing": [{"operation": "pivot",
+  "options": {"index": ["DateAdded"], "columns": [], "aggregates": {"SUM(Overall)":
+  {"operator": "mean"}}, "drop_missing_columns": true}}, {"operation": "flatten"}]}],
+  "form_data": {"datasource": "21__table", "viz_type": "big_number", "x_axis": "DateAdded",
+  "time_grain_sqla": "P1D", "metric": {"expressionType": "SIMPLE", "column": {"advanced_data_type":
+  null, "certification_details": null, "certified_by": null, "column_name": "Overall",
+  "description": null, "expression": null, "filterable": true, "groupby": true, "id":
+  740, "is_certified": false, "is_dttm": false, "python_date_format": null, "type":
+  "FLOAT(53)", "type_generic": 0, "verbose_name": null, "warning_markdown": null},
+  "aggregate": "SUM", "sqlExpression": null, "datasourceWarning": false, "hasCustomLabel":
+  false, "label": "SUM(Overall)", "optionName": "metric_7rlbh97eub_3yku0cnthrm"},
+  "adhoc_filters": [{"expressionType": "SIMPLE", "subject": "DateAdded", "operator":
+  "TEMPORAL_RANGE", "comparator": "No filter", "clause": "WHERE", "sqlExpression":
+  null, "isExtra": false, "isNew": false, "datasourceWarning": false, "filterOptionName":
+  "filter_5kc8bkf521u_pioykbey58p"}, {"expressionType": "SIMPLE", "subject": "ParentId",
+  "operator": "==", "operatorId": "EQUALS", "comparator": -1, "clause": "WHERE", "sqlExpression":
+  null, "isExtra": false, "isNew": false, "datasourceWarning": false, "filterOptionName":
+  "filter_ej3l2x8hleb_qhdci35cmjc"}], "compare_lag": 30, "compare_suffix": "to month
+  ago", "show_timestamp": true, "show_trend_line": true, "start_y_axis_at_zero": true,
+  "color_picker": {"r": 0, "g": 122, "b": 135, "a": 1}, "header_font_size": 0.4, "subheader_font_size":
+  0.15, "y_axis_format": "~g", "time_format": "smart_date", "rolling_type": "None",
+  "extra_form_data": {}, "dashboards": [9], "force": false, "result_format": "json",
+  "result_type": "full"}, "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 5fa5f8df-8652-4fc2-a8e5-37bcbd712aeb
+version: 1.0.0
+dataset_uuid: 82f2060a-ca94-4fb8-bcef-e40f52af4733
+tags: []

@@ -19,7 +19,7 @@
 2. Запустить PostgreSQL: `docker compose up -d db`.
 3. Выполнить ежедневный импорт: `docker compose run --rm importer`.
 
-Для запуска BI: `docker compose --profile bi up -d --build superset`, затем открыть `http://localhost:8088`. При старте Superset импортирует локально адаптированные dataset и dashboards из `superset/`; исходные экспорты не меняются. Для сервера Superset опубликован только на localhost; внешний доступ настраивайте через VPN или reverse proxy с аутентификацией.
+Для запуска BI: `docker compose --profile bi up -d --build superset`, затем открыть `http://localhost:8088`. Если в `superset/` есть dataset и dashboard exports, Superset импортирует их при старте; сами exports теперь можно хранить в Git. Для сервера Superset опубликован только на localhost; внешний доступ настраивайте через VPN или reverse proxy с аутентификацией.
 
 Для полного сброса Coral-таблиц во время отладки: `docker compose --profile maintenance run --rm reset-db`. Команда удаляет данные `dailystats` и пересоздаёт справочник и view; она не удаляет Superset metadata или PostgreSQL volume целиком.
 
@@ -60,13 +60,19 @@ docker compose run --rm importer --file /data/reports/2026-11-04.xlsx
 git checkout <нужная-ветка>
 cp coralAnalytics/.env.example coralAnalytics/.env
 # Заполнить Coral credentials и локальные пароли в coralAnalytics/.env
-mkdir -p coralAnalytics/azure_db_backup
-# Скопировать .bacpac в coralAnalytics/azure_db_backup; этот каталог исключён из Git
 chmod +x coralAnalytics/deploy-home-linux.sh
 coralAnalytics/deploy-home-linux.sh --schedule 02:00
 ```
 
-Скрипт проверяет Linux x86_64, Docker Compose v2, `psql` и systemd; собирает образы; поднимает PostgreSQL и временный SQL Server; восстанавливает схему и данные из BACPAC; запускает Superset и ставит user-level `systemd` timer. SQL Server staging удаляется после восстановления. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты.
+Скрипт проверяет Linux x86_64, Docker Compose v2, `psql` и systemd; собирает образы; поднимает PostgreSQL; запускает Superset и ставит user-level `systemd` timer. По умолчанию существующая PostgreSQL база не пересоздаётся и не меняется. Только если нужно восстановить дамп, выполните отдельный запуск с явным аргументом:
+
+```sh
+coralAnalytics/deploy-home-linux.sh \
+	--bacpac coralAnalytics/azure_db_backup/coral-2026-11-5-16-17.bacpac \
+	--schedule 02:00
+```
+
+При этом скрипт поднимет временный SQL Server и попросит подтвердить замену базы; SQL Server staging удаляется после восстановления. Каталог `azure_db_backup` исключён из Git. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты.
 
 Чтобы timer работал, когда пользователь не вошёл в систему, один раз выполнить `sudo loginctl enable-linger "$USER"`. Пользователь должен иметь доступ к Docker без интерактивного `sudo`. Superset опубликован только на localhost; для доступа с другого устройства используйте SSH tunnel или VPN, не открывайте порт 8088 в интернет.
 

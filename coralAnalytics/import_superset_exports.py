@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import shutil
@@ -146,7 +147,12 @@ def main() -> None:
     dataset_exports = sorted(EXPORT_ROOT.glob("dataset_export_*"))
     dashboard_exports = sorted(EXPORT_ROOT.glob("dashboard_export_*"))
     if not dataset_exports or not dashboard_exports:
-        raise RuntimeError("Expected a dataset export and at least one dashboard export in superset/")
+        logging.warning(
+            "Superset dataset/dashboard exports are missing in %s; "
+            "skipping export import",
+            EXPORT_ROOT,
+        )
+        return
     dataset_export = dataset_exports[-1]
 
     with tempfile.TemporaryDirectory(prefix="coral-superset-") as temp_dir:

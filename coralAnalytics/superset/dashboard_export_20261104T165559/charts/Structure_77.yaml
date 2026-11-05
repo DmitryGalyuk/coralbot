@@ -1,0 +1,111 @@
+slice_name: Structure
+description: null
+certified_by: null
+certification_details: null
+viz_type: table
+params:
+  datasource: 21__table
+  viz_type: table
+  slice_id: 77
+  matrixify_show_column_headers: true
+  matrixify_mode_columns: metrics
+  matrixify_dimension_selection_mode_columns: members
+  matrixify_dimension_columns:
+    dimension: ''
+    values: []
+  matrixify_topn_value_columns: 10
+  matrixify_topn_order_columns: desc
+  matrixify_show_row_labels: true
+  matrixify_mode_rows: metrics
+  matrixify_dimension_selection_mode_rows: members
+  matrixify_dimension_rows:
+    dimension: ''
+    values: []
+  matrixify_topn_value_rows: 10
+  matrixify_topn_order_rows: desc
+  matrixify_row_height: 300
+  matrixify_fit_columns_dynamically: true
+  matrixify_charts_per_row: 3
+  query_mode: raw
+  groupby: []
+  temporal_columns_lookup:
+    DateAdded: true
+  all_columns:
+  - expressionType: SQL
+    label: Name
+    sqlExpression: REPLICATE('--', gen) + ' ' + Name
+  - TitleName
+  - label: Personal
+    sqlExpression: round(Personal, 0)
+    expressionType: SQL
+  - label: Overall
+    sqlExpression: round(Overall, 0)
+    expressionType: SQL
+  - label: Pending
+    sqlExpression: round(Pending, 0)
+    expressionType: SQL
+  percent_metrics: []
+  adhoc_filters:
+  - clause: WHERE
+    comparator: 'today : DATEADD(DATETIME("today"), 1, day)'
+    datasourceWarning: false
+    expressionType: SIMPLE
+    filterOptionName: filter_9i8upj9uw9l_9aszzh2sj0p
+    isExtra: false
+    isNew: false
+    operator: TEMPORAL_RANGE
+    sqlExpression: null
+    subject: DateAdded
+  order_by_cols:
+  - '["rownum", true]'
+  row_limit: 1000
+  percent_metric_calculation: row_limit
+  table_timestamp_format: smart_date
+  allow_render_html: true
+  show_cell_bars: true
+  color_pn: true
+  comparison_color_scheme: Green
+  conditional_formatting: []
+  time_compare: []
+  comparison_type: values
+  extra_form_data: {}
+  dashboards:
+  - 9
+query_context: '{"datasource": {"id": 21, "type": "table"}, "force": false, "queries":
+  [{"filters": [{"col": "DateAdded", "op": "TEMPORAL_RANGE", "val": "today : DATEADD(DATETIME(\"today\"),
+  1, day)"}], "extras": {"having": "", "where": ""}, "applied_time_extras": {}, "columns":
+  [{"expressionType": "SQL", "label": "Name", "sqlExpression": "REPLICATE(''--'',
+  gen) + '' '' + Name"}, "TitleName", {"label": "Personal", "sqlExpression": "round(Personal,
+  0)", "expressionType": "SQL"}, {"label": "Overall", "sqlExpression": "round(Overall,
+  0)", "expressionType": "SQL"}, {"label": "Pending", "sqlExpression": "round(Pending,
+  0)", "expressionType": "SQL"}], "orderby": [["rownum", true]], "annotation_layers":
+  [], "row_limit": 1000, "series_limit": 0, "group_others_when_limit_reached": false,
+  "order_desc": true, "url_params": {}, "custom_params": {}, "custom_form_data": {},
+  "post_processing": [], "time_offsets": []}], "form_data": {"datasource": "21__table",
+  "viz_type": "table", "slice_id": 77, "matrixify_show_column_headers": true, "matrixify_mode_columns":
+  "metrics", "matrixify_dimension_selection_mode_columns": "members", "matrixify_dimension_columns":
+  {"dimension": "", "values": []}, "matrixify_topn_value_columns": 10, "matrixify_topn_order_columns":
+  "desc", "matrixify_show_row_labels": true, "matrixify_mode_rows": "metrics", "matrixify_dimension_selection_mode_rows":
+  "members", "matrixify_dimension_rows": {"dimension": "", "values": []}, "matrixify_topn_value_rows":
+  10, "matrixify_topn_order_rows": "desc", "matrixify_row_height": 300, "matrixify_fit_columns_dynamically":
+  true, "matrixify_charts_per_row": 3, "query_mode": "raw", "groupby": [], "temporal_columns_lookup":
+  {"DateAdded": true}, "all_columns": [{"expressionType": "SQL", "label": "Name",
+  "sqlExpression": "REPLICATE(''--'', gen) + '' '' + Name"}, "TitleName", {"label":
+  "Personal", "sqlExpression": "round(Personal, 0)", "expressionType": "SQL"}, {"label":
+  "Overall", "sqlExpression": "round(Overall, 0)", "expressionType": "SQL"}, {"label":
+  "Pending", "sqlExpression": "round(Pending, 0)", "expressionType": "SQL"}], "percent_metrics":
+  [], "adhoc_filters": [{"clause": "WHERE", "comparator": "today : DATEADD(DATETIME(\"today\"),
+  1, day)", "datasourceWarning": false, "expressionType": "SIMPLE", "filterOptionName":
+  "filter_9i8upj9uw9l_9aszzh2sj0p", "isExtra": false, "isNew": false, "operator":
+  "TEMPORAL_RANGE", "sqlExpression": null, "subject": "DateAdded"}], "order_by_cols":
+  ["[\"rownum\", true]"], "row_limit": 1000, "percent_metric_calculation": "row_limit",
+  "table_timestamp_format": "smart_date", "allow_render_html": true, "show_cell_bars":
+  true, "color_pn": true, "comparison_color_scheme": "Green", "conditional_formatting":
+  [], "time_compare": [], "comparison_type": "values", "extra_form_data": {}, "dashboards":
+  [9], "force": false, "result_format": "json", "result_type": "full", "include_time":
+  false}, "result_format": "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 0e03cbe1-084f-4fed-81bf-3d76605554a8
+version: 1.0.0
+dataset_uuid: 82f2060a-ca94-4fb8-bcef-e40f52af4733
+tags: []

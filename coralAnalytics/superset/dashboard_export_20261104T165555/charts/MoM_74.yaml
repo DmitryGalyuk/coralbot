@@ -1,0 +1,134 @@
+slice_name: MoM
+description: null
+certified_by: null
+certification_details: null
+viz_type: echarts_timeseries_line
+params:
+  adhoc_filters:
+  - clause: WHERE
+    comparator: No filter
+    expressionType: SIMPLE
+    operator: TEMPORAL_RANGE
+    subject: DateAdded
+  annotation_layers: []
+  area: false
+  color_scheme: supersetColors
+  comparison_type: values
+  dashboards:
+  - 8
+  datasource: 21__table
+  extra_form_data: {}
+  forecastInterval: 0.8
+  forecastPeriods: 10
+  groupby:
+  - Name
+  - expressionType: SQL
+    label: MonthName
+    sqlExpression: concat(DATENAME(month, DateAdded), ' ', DATENAME(Year, DateAdded))
+  markerEnabled: false
+  metrics:
+  - aggregate: SUM
+    column:
+      advanced_data_type: null
+      certification_details: null
+      certified_by: null
+      column_name: Overall
+      description: null
+      expression: null
+      filterable: true
+      groupby: true
+      id: 740
+      is_certified: false
+      is_dttm: false
+      python_date_format: null
+      type: FLOAT(53)
+      type_generic: 0
+      verbose_name: null
+      warning_markdown: null
+    datasourceWarning: false
+    expressionType: SIMPLE
+    hasCustomLabel: false
+    label: SUM(Overall)
+    optionName: metric_7paudptdx47_tqxu4me91tg
+    sqlExpression: null
+  minorTicks: false
+  rich_tooltip: true
+  row_limit: 10000
+  seriesType: line
+  showTooltipTotal: true
+  show_empty_columns: true
+  show_legend: false
+  slice_id: 74
+  sort_series_type: max
+  tooltipTimeFormat: smart_date
+  truncateXAxis: true
+  truncate_metric: true
+  viz_type: echarts_timeseries_line
+  xAxisLabelInterval: auto
+  x_axis:
+    expressionType: SQL
+    label: DayOfMonth
+    sqlExpression: DAY(DateAdded)
+  x_axis_sort: name
+  x_axis_sort_asc: true
+  x_axis_time_format: smart_date
+  x_axis_title_margin: 15
+  y_axis_format: SMART_NUMBER
+  y_axis_title_margin: 15
+  y_axis_title_position: Left
+  zoomable: false
+query_context: '{"datasource": {"id": 21, "type": "table"}, "force": false, "queries":
+  [{"filters": [{"col": "DateAdded", "op": "TEMPORAL_RANGE", "val": "No filter"}],
+  "extras": {"having": "", "where": ""}, "applied_time_extras": {}, "columns": [{"columnType":
+  "BASE_AXIS", "expressionType": "SQL", "label": "DayOfMonth", "sqlExpression": "DAY(DateAdded)"},
+  "Name", {"expressionType": "SQL", "label": "MonthName", "sqlExpression": "concat(DATENAME(month,
+  DateAdded), '' '', DATENAME(Year, DateAdded))"}], "metrics": [{"aggregate": "SUM",
+  "column": {"advanced_data_type": null, "certification_details": null, "certified_by":
+  null, "column_name": "Overall", "description": null, "expression": null, "filterable":
+  true, "groupby": true, "id": 740, "is_certified": false, "is_dttm": false, "python_date_format":
+  null, "type": "FLOAT(53)", "type_generic": 0, "verbose_name": null, "warning_markdown":
+  null}, "datasourceWarning": false, "expressionType": "SIMPLE", "hasCustomLabel":
+  false, "label": "SUM(Overall)", "optionName": "metric_7paudptdx47_tqxu4me91tg",
+  "sqlExpression": null}], "orderby": [[{"aggregate": "SUM", "column": {"advanced_data_type":
+  null, "certification_details": null, "certified_by": null, "column_name": "Overall",
+  "description": null, "expression": null, "filterable": true, "groupby": true, "id":
+  740, "is_certified": false, "is_dttm": false, "python_date_format": null, "type":
+  "FLOAT(53)", "type_generic": 0, "verbose_name": null, "warning_markdown": null},
+  "datasourceWarning": false, "expressionType": "SIMPLE", "hasCustomLabel": false,
+  "label": "SUM(Overall)", "optionName": "metric_7paudptdx47_tqxu4me91tg", "sqlExpression":
+  null}, false]], "annotation_layers": [], "row_limit": 10000, "series_columns": ["Name",
+  {"expressionType": "SQL", "label": "MonthName", "sqlExpression": "concat(DATENAME(month,
+  DateAdded), '' '', DATENAME(Year, DateAdded))"}], "series_limit": 0, "order_desc":
+  true, "url_params": {}, "custom_params": {}, "custom_form_data": {}, "time_offsets":
+  [], "post_processing": [{"operation": "pivot", "options": {"index": ["DayOfMonth"],
+  "columns": ["Name", "MonthName"], "aggregates": {"SUM(Overall)": {"operator": "mean"}},
+  "drop_missing_columns": false}}, {"operation": "rename", "options": {"columns":
+  {"SUM(Overall)": null}, "level": 0, "inplace": true}}, {"operation": "flatten"}]}],
+  "form_data": {"datasource": "21__table", "viz_type": "echarts_timeseries_line",
+  "slice_id": 74, "x_axis": {"expressionType": "SQL", "label": "DayOfMonth", "sqlExpression":
+  "DAY(DateAdded)"}, "x_axis_sort": "name", "x_axis_sort_asc": true, "metrics": [{"aggregate":
+  "SUM", "column": {"advanced_data_type": null, "certification_details": null, "certified_by":
+  null, "column_name": "Overall", "description": null, "expression": null, "filterable":
+  true, "groupby": true, "id": 740, "is_certified": false, "is_dttm": false, "python_date_format":
+  null, "type": "FLOAT(53)", "type_generic": 0, "verbose_name": null, "warning_markdown":
+  null}, "datasourceWarning": false, "expressionType": "SIMPLE", "hasCustomLabel":
+  false, "label": "SUM(Overall)", "optionName": "metric_7paudptdx47_tqxu4me91tg",
+  "sqlExpression": null}], "groupby": ["Name", {"expressionType": "SQL", "label":
+  "MonthName", "sqlExpression": "concat(DATENAME(month, DateAdded), '' '', DATENAME(Year,
+  DateAdded))"}], "adhoc_filters": [{"clause": "WHERE", "comparator": "No filter",
+  "expressionType": "SIMPLE", "operator": "TEMPORAL_RANGE", "subject": "DateAdded"}],
+  "row_limit": 10000, "truncate_metric": true, "show_empty_columns": true, "comparison_type":
+  "values", "annotation_layers": [], "forecastPeriods": 10, "forecastInterval": 0.8,
+  "x_axis_title_margin": 15, "y_axis_title_margin": 15, "y_axis_title_position": "Left",
+  "sort_series_type": "max", "color_scheme": "supersetColors", "seriesType": "line",
+  "area": false, "markerEnabled": false, "zoomable": false, "minorTicks": false, "show_legend":
+  false, "x_axis_time_format": "smart_date", "xAxisLabelInterval": "auto", "rich_tooltip":
+  true, "showTooltipTotal": true, "tooltipTimeFormat": "smart_date", "y_axis_format":
+  "SMART_NUMBER", "truncateXAxis": true, "extra_form_data": {}, "dashboards": [8],
+  "force": false, "result_format": "json", "result_type": "full"}, "result_format":
+  "json", "result_type": "full"}'
+cache_timeout: null
+uuid: 778da94f-b391-4c6b-82d6-adccfc43859d
+version: 1.0.0
+dataset_uuid: 82f2060a-ca94-4fb8-bcef-e40f52af4733
+tags: []

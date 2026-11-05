@@ -1,0 +1,358 @@
+table_name: CoralView
+main_dttm_col: DateAdded
+currency_code_column: null
+description: null
+default_endpoint: null
+offset: 0
+cache_timeout: null
+catalog: null
+schema: dbo
+sql: ''
+params: null
+template_params: null
+filter_select_enabled: true
+fetch_values_predicate: null
+extra: null
+normalize_columns: false
+always_filter_main_dttm: false
+folders: null
+partition_column: null
+partition_mapped_column: null
+uuid: 82f2060a-ca94-4fb8-bcef-e40f52af4733
+metrics:
+- metric_name: count
+  verbose_name: COUNT(*)
+  metric_type: count
+  expression: COUNT(*)
+  description: null
+  d3format: null
+  currency: null
+  extra:
+    warning_markdown: ''
+  warning_text: null
+  uuid: d6ab4347-516d-4dda-90a7-4f301d77a587
+columns:
+- column_name: GroupVolume
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: FLOAT(53)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 4003d0dd-0f8d-41e5-944e-122e8178b731
+- column_name: Personal
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: FLOAT(53)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: e86de225-dae2-4471-ba0b-040a499dae0e
+- column_name: Path
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: NVARCHAR(MAX)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 4e40c04b-cbc1-4162-9ca9-5f29c2d01522
+- column_name: File_Name
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: NVARCHAR(50)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 8f1aef7b-c038-4e86-b4a9-bb4c242b21e0
+- column_name: Overall
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: FLOAT(53)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 57848ca3-033d-4fff-82f7-2064e480affe
+- column_name: TitleName
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: NVARCHAR(50)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: ae82784a-1961-4043-96c9-c63a9d398117
+- column_name: Name
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: NVARCHAR(255)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 9ccf9c09-ce2f-4c53-aa6a-10fbb6657a72
+- column_name: Pending
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: FLOAT(53)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: ba58359b-a3db-4258-9a2a-3f43c0520648
+- column_name: rownum
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: f332b0d9-6d68-42fb-8001-09c14853ad15
+- column_name: Id
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 80ad67c3-8e0a-4558-b46d-bf879027e66f
+- column_name: ParentId
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 8f11ca13-03ad-4707-a8ed-57a54eb1d5df
+- column_name: Year
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 6211d8e7-405a-4907-82dc-aeaf37d492f3
+- column_name: gen
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 48b6b88d-a5e7-413f-9046-690f937e63f3
+- column_name: Month
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: f4533aa4-f9c4-4c85-8c7e-a213ebfccec0
+- column_name: TitleRank
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: d84a3387-2448-407c-a66f-64185c6f6485
+- column_name: Day
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: f78537d9-c7e3-48ff-a239-34852c0d3c99
+- column_name: IsDirector
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: INTEGER
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: db881aac-814a-4335-b715-84226b3cdfcc
+- column_name: DateAdded
+  verbose_name: null
+  is_dttm: true
+  is_active: true
+  type: DATE
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra:
+    warning_markdown: null
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: eeffd46f-949f-49be-8575-f79dce86ec1e
+- column_name: StructurePending
+  verbose_name: null
+  is_dttm: false
+  is_active: true
+  type: FLOAT(53)
+  advanced_data_type: null
+  groupby: true
+  filterable: true
+  expression: null
+  description: null
+  python_date_format: null
+  datetime_format: null
+  extra: {}
+  partition_value_transform: null
+  partition_transform_is_monotonic: false
+  uuid: 570a6c1c-98c4-408c-9599-a434387b3fcf
+version: 1.0.0
+database_uuid: bdb5f92e-b275-4aee-a20b-febd5ae7638f
