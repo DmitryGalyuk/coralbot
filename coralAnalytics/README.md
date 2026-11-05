@@ -23,6 +23,8 @@
 
 Для полного сброса Coral-таблиц во время отладки: `docker compose --profile maintenance run --rm reset-db`. Команда удаляет данные `dailystats` и пересоздаёт справочник и view; она не удаляет Superset metadata или PostgreSQL volume целиком.
 
+Для безопасного перезапуска Postgres и Superset на домашнем сервере используйте `./restart-home-linux.sh`. Эта команда только перезапускает контейнеры и не запускает восстановление BACPAC. После `git pull`, если нужно пересобрать образы, используйте `./restart-home-linux.sh --build`; данные PostgreSQL остаются в Docker volume.
+
 ## Восстановление SQL Server BACPAC
 
 `restore_bacpac.py` использует схему и данные из BACPAC как источник истины: импортирует архив во временную SQL Server базу, переносит её в отдельную PostgreSQL базу и запускает проектный `schema-init` для заполнения `titles` и создания `coralview`. Старые SQL-проекты при этом не используются. Нужны Docker Compose, `psql`, SQL Server с правом создавать базы и PostgreSQL-пользователь с правами создания баз. По умолчанию требуются `sqlpackage` и `pgloader` в `PATH`; для Docker-mode нужны `docker`, доступная общая сеть и имя PostgreSQL сервиса в этой сети.
