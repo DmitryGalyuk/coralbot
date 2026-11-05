@@ -6,3 +6,4 @@ package-lock.json
 **/*.drawio.bkp
 *.sqlproj
 __azurite*.*
+coralAnalytics/superset/*export*

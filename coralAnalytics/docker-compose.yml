@@ -1,0 +1,125 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coral}
+      POSTGRES_USER: ${POSTGRES_USER:-coral}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db/01-create-superset-db.sql:/docker-entrypoint-initdb.d/01-create-superset-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  importer:
+    build:
+      context: .
+      dockerfile: importer.Dockerfile
+    profiles: ["jobs"]
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CORAL_LOGIN: ${CORAL_LOGIN:?Set CORAL_LOGIN in .env}
+      CORAL_PASSWORD: ${CORAL_PASSWORD:?Set CORAL_PASSWORD in .env}
+      CORAL_LANG: ${CORAL_LANG:-gb}
+      REPORT_TYPE: ${REPORT_TYPE:-CDXPRep}
+      REPORT_DATE: ${REPORT_DATE:-}
+      REPORT_PERIOD: ${REPORT_PERIOD:-}
+      REPORT_DIR: /data/reports
+      POSTGRES_DB: ${POSTGRES_DB:-coral}
+      POSTGRES_USER: ${POSTGRES_USER:-coral}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./data:/data
+
+  schema-init:
+    build:
+      context: .
+      dockerfile: importer.Dockerfile
+    profiles: ["bi"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "-m", "coral_analytics.run", "--init-schema"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coral}
+      POSTGRES_USER: ${POSTGRES_USER:-coral}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+
+  reset-db:
+    build:
+      context: .
+      dockerfile: importer.Dockerfile
+    profiles: ["maintenance"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "-m", "coral_analytics.run", "--reset-schema"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coral}
+      POSTGRES_USER: ${POSTGRES_USER:-coral}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+
+  superset:
+    image: coral-analytics-superset:4.1.1
+    build:
+      context: .
+      dockerfile: superset/Dockerfile
+    profiles: ["bi"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      schema-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${SUPERSET_LOCAL_PORT:-8088}:8088"
+    environment:
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
+      SUPERSET_ADMIN_USERNAME: ${SUPERSET_ADMIN_USERNAME:-admin}
+      SUPERSET_ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD:?Set SUPERSET_ADMIN_PASSWORD in .env}
+      SUPERSET_ADMIN_EMAIL: ${SUPERSET_ADMIN_EMAIL:-admin@example.local}
+      POSTGRES_DB: ${POSTGRES_DB:-coral}
+      POSTGRES_USER: ${POSTGRES_USER:-coral}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./superset_config.py:/app/pythonpath/superset_config.py:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        superset db upgrade
+        if ! superset fab list-users | grep -F "$${SUPERSET_ADMIN_USERNAME}"; then
+          superset fab create-admin \
+            --username "$${SUPERSET_ADMIN_USERNAME}" \
+            --firstname Coral \
+            --lastname Admin \
+            --email "$${SUPERSET_ADMIN_EMAIL}" \
+            --password "$${SUPERSET_ADMIN_PASSWORD}"
+        fi
+        superset init
+        python /app/import_superset_exports.py
+        exec /usr/bin/run-server.sh
+
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+"""Local Coral report analytics service."""

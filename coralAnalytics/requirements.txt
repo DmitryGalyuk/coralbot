@@ -1,0 +1,5 @@
+pandas
+openpyxl
+requests
+SQLAlchemy>=2,<3
+psycopg[binary]>=3,<4

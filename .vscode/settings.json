@@ -9,5 +9,18 @@
     "azureFunctions.projectLanguageModel": 2,
     "dataworkspace.excludedProjects": [
         "coral/coral.sqlproj"
+    ],
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "coralAnalytics",
+            "database": "coral",
+            "username": "coral",
+            "password": "replace-with-a-long-local-password"
+        }
     ]
 }
