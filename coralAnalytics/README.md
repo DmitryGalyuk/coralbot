@@ -23,6 +23,21 @@
 
 Для полного сброса Coral-таблиц во время отладки: `docker compose --profile maintenance run --rm reset-db`. Команда удаляет данные `dailystats` и пересоздаёт справочник и view; она не удаляет Superset metadata или PostgreSQL volume целиком.
 
+## Восстановление SQL Server BACPAC
+
+`restore_bacpac.py` использует схему и данные из BACPAC как источник истины: импортирует архив во временную SQL Server базу, переносит её в отдельную PostgreSQL базу и запускает проектный `schema-init` для заполнения `titles` и создания `coralview`. Старые SQL-проекты при этом не используются. Нужны Docker Compose, `psql`, SQL Server с правом создавать базы и PostgreSQL-пользователь с правами создания баз. По умолчанию требуются `sqlpackage` и `pgloader` в `PATH`; для Docker-mode нужны `docker`, доступная общая сеть и имя PostgreSQL сервиса в этой сети.
+
+```sh
+SQLSERVER_URL='mssql://user:password@server:1433/master' \
+POSTGRES_URL='postgresql://coral:password@localhost:5432/coral' \
+python3 restore_bacpac.py azure_db_backup/coral-2026-11-5-16-17.bacpac \
+	--confirm-database coral
+```
+
+Для контейнерного запуска `sqlpackage` и `pgloader` задайте `RESTORE_DOCKER_NETWORK` и `PGLOADER_POSTGRES_HOST`, например `coralanalytics_default` и `db`. SQL Server должен быть доступен по `SQLSERVER_URL` в этой же Docker-сети.
+
+Скрипт просит интерактивно подтвердить имя целевой базы. Только после успешного импорта, инициализации схемы и проверки `coralview` он заменяет целевую базу; база `superset` не затрагивается. SQL Server views из BACPAC не копируются; PostgreSQL `coralview` создаётся проектным initializer.
+
 Схема создаёт таблицы `dailystats` и `titles`, наполняет `titles` справочником рангов и создаёт `public.coralview`. View вычисляет календарные поля, `IsDirector`, `IsLatestDate`, `TitleName`/`TitleRank`; `Path` строится как цепочка ID от корня структуры в рамках даты snapshot. Имя отчёта сохраняется в `file_name`, дата отчёта берётся из `REPORT_DATE`, если задана, иначе из текущей локальной даты. Период скачивания можно переопределить через `REPORT_PERIOD`.
 
 Повторная загрузка за ту же дату обновляет строки с совпадающим `id`, а не добавляет дубликаты.
