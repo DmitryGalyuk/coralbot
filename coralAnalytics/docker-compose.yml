@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: coral-analytics-db
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -18,6 +19,7 @@ services:
       retries: 12
 
   importer:
+    container_name: coral-analytics-importer
     build:
       context: .
       dockerfile: importer.Dockerfile
@@ -43,6 +45,7 @@ services:
       - ./data:/data
 
   schema-init:
+    container_name: coral-analytics-schema-init
     build:
       context: .
       dockerfile: importer.Dockerfile
@@ -60,6 +63,7 @@ services:
       POSTGRES_PORT: 5432
 
   reset-db:
+    container_name: coral-analytics-reset-db
     build:
       context: .
       dockerfile: importer.Dockerfile
@@ -77,6 +81,7 @@ services:
       POSTGRES_PORT: 5432
 
   superset:
+    container_name: coral-analytics-superset
     image: coral-analytics-superset:4.1.1
     build:
       context: .
@@ -89,7 +94,7 @@ services:
       schema-init:
         condition: service_completed_successfully
     ports:
-      - "127.0.0.1:${SUPERSET_LOCAL_PORT:-8088}:8088"
+      - "${SUPERSET_LOCAL_PORT:-8088}:8088"
     environment:
       SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
       SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
