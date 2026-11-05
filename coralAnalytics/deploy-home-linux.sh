@@ -5,7 +5,7 @@ ANALYTICS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$ANALYTICS_DIR/.env"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 SCHEDULE="02:00"
-BACPac_ARG=""
+BACPAC_ARG=""
 SQL_CONTAINER=""
 
 usage() {
