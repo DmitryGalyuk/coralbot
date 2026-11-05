@@ -1,4 +1,5 @@
 .env
+azure_db_backup/
 __pycache__/
 *.py[cod]
 .venv/

@@ -54,13 +54,23 @@ docker compose run --rm importer --file /data/reports/2026-11-04.xlsx
 
 ## Ночное расписание
 
-Контейнер загрузчика запускается как одноразовая задача, а расписание лучше поручить `systemd timer` на Linux-сервере. Команда для timer:
+Для переноса на домашний Linux-сервер:
 
 ```sh
-docker compose run --rm importer
+git checkout <нужная-ветка>
+cp coralAnalytics/.env.example coralAnalytics/.env
+# Заполнить Coral credentials и локальные пароли в coralAnalytics/.env
+mkdir -p coralAnalytics/azure_db_backup
+# Скопировать .bacpac в coralAnalytics/azure_db_backup; этот каталог исключён из Git
+chmod +x coralAnalytics/deploy-home-linux.sh
+coralAnalytics/deploy-home-linux.sh --schedule 02:00
 ```
 
-Перед запуском по расписанию один раз собрать образ командой `docker compose build importer`. Путь к проекту и `.env` на сервере должны быть постоянными. Логи задачи доступны в журнале systemd; логи базы — через `docker compose logs db`.
+Скрипт проверяет Linux x86_64, Docker Compose v2, `psql` и systemd; собирает образы; поднимает PostgreSQL и временный SQL Server; восстанавливает схему и данные из BACPAC; запускает Superset и ставит user-level `systemd` timer. SQL Server staging удаляется после восстановления. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты.
+
+Чтобы timer работал, когда пользователь не вошёл в систему, один раз выполнить `sudo loginctl enable-linger "$USER"`. Пользователь должен иметь доступ к Docker без интерактивного `sudo`. Superset опубликован только на localhost; для доступа с другого устройства используйте SSH tunnel или VPN, не открывайте порт 8088 в интернет.
+
+Проверка timer: `systemctl --user status coral-import.timer`. Логи импорта: `journalctl --user -u coral-import.service`; логи базы: `docker compose -f coralAnalytics/docker-compose.yml logs db`. Docker volume не заменяет резервные копии: настройте периодический `pg_dump` на другой диск или удалённое хранилище.
 
 ## Подключение к PostgreSQL
 
