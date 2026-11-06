@@ -66,17 +66,27 @@ chmod +x coralAnalytics/deploy-home-linux.sh
 coralAnalytics/deploy-home-linux.sh --schedule 02:00
 ```
 
-Скрипт проверяет Linux x86_64, Docker Compose v2, `psql` и systemd; собирает образы; поднимает PostgreSQL; запускает Superset и ставит user-level `systemd` timer. По умолчанию существующая PostgreSQL база не пересоздаётся и не меняется. Только если нужно восстановить дамп, выполните отдельный запуск с явным аргументом:
+Один управляющий скрипт запускает сервисы и каждый раз устанавливает/включает daily user-level `systemd` timer. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты. Примеры:
 
 ```sh
+# Обычный запуск/обновление с использованием Docker build cache
+coralAnalytics/deploy-home-linux.sh --schedule 02:00
+
+# Только перезапуск контейнеров без пересборки
+coralAnalytics/deploy-home-linux.sh --restart
+
+# Пересборка образов без Docker build cache
+coralAnalytics/deploy-home-linux.sh --rebuild
+
+# Явно восстановить BACPAC; перед заменой базы будет запрошено подтверждение
 coralAnalytics/deploy-home-linux.sh \
 	--bacpac coralAnalytics/azure_db_backup/coral-2026-11-5-16-17.bacpac \
 	--schedule 02:00
 ```
 
-При этом скрипт поднимет временный SQL Server и попросит подтвердить замену базы; SQL Server staging удаляется после восстановления. Каталог `azure_db_backup` исключён из Git. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты.
+Без `--bacpac` скрипт не запускает restore и не меняет данные PostgreSQL. `--restart` нельзя совмещать с `--bacpac`. При restore скрипт поднимет временный SQL Server и попросит подтвердить замену базы; SQL Server staging удаляется после восстановления. Каталог `azure_db_backup` исключён из Git.
 
-Чтобы timer работал, когда пользователь не вошёл в систему, один раз выполнить `sudo loginctl enable-linger "$USER"`. Пользователь должен иметь доступ к Docker без интерактивного `sudo`. Superset опубликован только на localhost; для доступа с другого устройства используйте SSH tunnel или VPN, не открывайте порт 8088 в интернет.
+Если lingering ещё выключен, скрипт включает его через `sudo loginctl enable-linger "$USER"`, чтобы timer работал после выхода пользователя и перезагрузки. Пользователь должен иметь доступ к Docker. Статус расписания: `systemctl --user list-timers coral-import.timer`; логи: `journalctl --user -u coral-import.service`. Superset опубликован согласно `SUPERSET_LOCAL_PORT`; для внешнего доступа используйте firewall и VPN, не открывайте порт в интернет без защиты.
 
 Проверка timer: `systemctl --user status coral-import.timer`. Логи импорта: `journalctl --user -u coral-import.service`; логи базы: `docker compose -f coralAnalytics/docker-compose.yml logs db`. Docker volume не заменяет резервные копии: настройте периодический `pg_dump` на другой диск или удалённое хранилище.
 

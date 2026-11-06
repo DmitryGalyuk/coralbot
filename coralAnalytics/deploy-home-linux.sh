@@ -7,14 +7,15 @@ SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 SCHEDULE="02:00"
 BACPAC_ARG=""
 SQL_CONTAINER=""
+ACTION="up"
 
 usage() {
     cat <<'EOF'
-Usage: deploy-home-linux.sh [--bacpac FILE] [--schedule HH:MM]
+Usage: deploy-home-linux.sh [--restart | --rebuild] [--bacpac FILE] [--schedule HH:MM]
 
-Builds and starts Coral Analytics, starts Superset, and installs a daily
-user-level systemd timer (default 02:00). The existing database is left
-untouched unless --bacpac FILE is explicitly provided.
+Starts Coral Analytics and always enables its daily importer timer (default 02:00).
+--restart restarts the running services; --rebuild rebuilds their images.
+The database is restored only when --bacpac FILE is explicitly provided.
 EOF
 }
 
@@ -41,6 +42,16 @@ while (($#)); do
             SCHEDULE="$2"
             shift 2
             ;;
+        --restart)
+            [[ "$ACTION" == up ]] || fail "Choose only one of --restart and --rebuild"
+            ACTION="restart"
+            shift
+            ;;
+        --rebuild)
+            [[ "$ACTION" == up ]] || fail "Choose only one of --restart and --rebuild"
+            ACTION="rebuild"
+            shift
+            ;;
         --help|-h)
             usage
             exit 0
@@ -52,15 +63,22 @@ while (($#)); do
 done
 
 [[ "$(uname -s)" == Linux ]] || fail "Run this script on the home Linux server"
-[[ "$(uname -m)" == x86_64 ]] || fail "The temporary SQL Server container requires Linux x86_64"
+if [[ -n "$BACPAC_ARG" && "$(uname -m)" != x86_64 ]]; then
+    fail "The temporary SQL Server container requires Linux x86_64"
+fi
 [[ "$SCHEDULE" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]] || fail "Schedule must be HH:MM, for example 02:00"
 [[ "$ANALYTICS_DIR" != *[[:space:]]* ]] || fail "Move the checkout to a path without spaces"
+[[ -z "$BACPAC_ARG" || "$ACTION" != restart ]] || fail "--bacpac cannot be combined with --restart"
 
-for command_name in docker psql python3 openssl systemctl; do
+for command_name in docker psql python3 systemctl loginctl; do
     command -v "$command_name" >/dev/null 2>&1 || fail "Install '$command_name' first"
 done
 docker compose version >/dev/null 2>&1 || fail "Install Docker Compose v2"
 systemctl --user show-environment >/dev/null 2>&1 || fail "Run from a login session with a systemd user manager"
+if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null || true)" != yes ]]; then
+    command -v sudo >/dev/null 2>&1 || fail "Enable lingering with: sudo loginctl enable-linger $USER"
+    sudo loginctl enable-linger "$USER" || fail "Could not enable systemd lingering for $USER"
+fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
     cp "$ANALYTICS_DIR/.env.example" "$ENV_FILE"
@@ -112,8 +130,15 @@ compose() {
 }
 
 compose config -q
-compose --profile bi build superset
-compose --profile jobs build importer
+if [[ "$ACTION" != restart ]]; then
+    if [[ "$ACTION" == rebuild ]]; then
+        compose --profile bi build --no-cache superset
+        compose --profile jobs build --no-cache importer
+    else
+        compose --profile bi build superset
+        compose --profile jobs build importer
+    fi
+fi
 compose up -d --wait db
 
 db_container="$(compose ps -q db)"
@@ -168,11 +193,15 @@ SQL
     RESTORE_DOCKER_NETWORK="$docker_network" \
     PGLOADER_POSTGRES_HOST=db \
     python3 "$ANALYTICS_DIR/restore_bacpac.py" "$BACPAC" --confirm-database "$POSTGRES_DB"
-else
-    printf 'No --bacpac provided; leaving PostgreSQL data untouched.\n'
 fi
 
-compose --profile bi up -d --build superset
+if [[ "$ACTION" == restart ]]; then
+    compose --profile bi up -d --wait superset
+    compose --profile bi restart db superset
+    compose --profile bi up -d --wait db superset
+else
+    compose --profile bi up -d --wait superset
+fi
 
 docker_bin="$(command -v docker)"
 mkdir -p "$SYSTEMD_USER_DIR"
@@ -204,10 +233,9 @@ EOF
 
 systemctl --user daemon-reload
 systemctl --user enable --now coral-import.timer
+systemctl --user is-active --quiet coral-import.timer || fail "coral-import.timer did not become active"
 
 printf '\nDeployment complete. Superset: http://127.0.0.1:%s\n' "$(read_env_value SUPERSET_LOCAL_PORT)"
 printf 'Daily import timer: systemctl --user status coral-import.timer\n'
 printf 'Import logs: journalctl --user -u coral-import.service\n'
-if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null || true)" != yes ]]; then
-    printf 'To run the timer while logged out, enable lingering once: sudo loginctl enable-linger %s\n' "$USER"
-fi
+systemctl --user list-timers --all coral-import.timer
