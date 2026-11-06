@@ -68,6 +68,8 @@ coralAnalytics/coralctl status
 
 `setup` сразу импортирует текущий отчёт, затем ставит два timer: ежедневную загрузку отчётов и PostgreSQL backup в день `BACKUP_DAY` (по умолчанию 15-е число, время `BACKUP_TIME`, по умолчанию 03:00). Оба запускают те же команды, что и вручную. Если `.env` отсутствует, `coralctl` создаёт его из `.env.example` и останавливается для заполнения.
 
+Во время setup `coralctl` печатает текущий этап (`Checking Google Drive folders`, build, database, Superset, timers, first report). Операции rclone имеют сетевые таймауты; если команда остановилась, последняя строка показывает, какой шаг проверить.
+
 `backup` создаёт локальный `pg_dump` custom archive, проверяет его и отправляет в Drive. По умолчанию локально сохраняются последние три успешно загруженных дампа (`BACKUP_KEEP_LOCAL=3`); Google Drive-копии не удаляются. `restore FILE` перед восстановлением делает текущую резервную копию, восстанавливает во временную БД и просит подтвердить переключение.
 
 Для BACPAC используйте `coralAnalytics/coralctl setup --bacpac FILE`; без этого параметра база не восстанавливается. Скрипт проверяет Linux x86_64, Docker Compose, rclone remote и user-level systemd. Если необходимо, он включает lingering через `sudo loginctl enable-linger`, чтобы timers работали после выхода пользователя.

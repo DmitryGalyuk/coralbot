@@ -121,6 +121,8 @@ def main() -> None:
                 for path in incoming_dir.iterdir()
                 if path.is_file() and path.suffix.lower() == ".xlsx"
             )
+            if pending_reports:
+                logger.info("Processing %d pending report(s) from %s", len(pending_reports), incoming_dir)
             for report_path in pending_reports:
                 report_date = parse_report_date(report_path.name, report_date_override)
                 import_report(engine, report_path, report_date, processed_dir)
@@ -139,6 +141,7 @@ def main() -> None:
         report_date = parse_report_date(report_date_override or date.today().isoformat(), None)
         report_path = incoming_dir / f"{report_date.isoformat()}.xlsx"
         report_period = os.environ.get("REPORT_PERIOD") or report_date.strftime("%Y%m")
+        logger.info("Downloading Coral report for period %s", report_period)
         report_contents = download_file(
             os.environ["CORAL_LOGIN"],
             os.environ["CORAL_PASSWORD"],
@@ -146,6 +149,7 @@ def main() -> None:
             os.environ.get("REPORT_TYPE", "CDXPRep"),
             report_period,
         )
+        logger.info("Downloaded %d bytes for %s", len(report_contents), report_date)
         temp_path = report_path.with_name(f".{report_path.name}.part")
         temp_path.write_bytes(report_contents)
         temp_path.replace(report_path)

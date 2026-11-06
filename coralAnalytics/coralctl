@@ -47,6 +47,10 @@ fail() {
     exit 1
 }
 
+step() {
+    printf '[coralctl] %s\n' "$1" >&2
+}
+
 cleanup() {
     if [[ -n "$RESTORE_STAGE" && -n "$DB_CONTAINER" ]]; then
         db_exec psql -d postgres -c "DROP DATABASE IF EXISTS \"$RESTORE_STAGE\" WITH (FORCE)" >/dev/null 2>&1 || true
@@ -195,11 +199,13 @@ ensure_remote() {
     [[ "$RCLONE_REMOTE" == *:* ]] || fail "Set RCLONE_REMOTE, for example gdrive:coral-analytics"
     local remote_name="${RCLONE_REMOTE%%:*}:"
     local configured_remotes
+    step "Checking rclone remote $remote_name"
     configured_remotes="$(rclone listremotes)"
     printf '%s\n' "$configured_remotes" | grep -Fxq "$remote_name" || \
         fail "rclone remote '$remote_name' is not configured. Available remotes: ${configured_remotes//$'\n'/, }. Update RCLONE_REMOTE in .env"
-    rclone mkdir "$REMOTE_BASE/reports"
-    rclone mkdir "$REMOTE_BASE/backups/postgres"
+    step "Checking Google Drive folders under $REMOTE_BASE"
+    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 mkdir "$REMOTE_BASE/reports"
+    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 mkdir "$REMOTE_BASE/backups/postgres"
 }
 
 ensure_linger() {
@@ -225,14 +231,18 @@ ensure_database() {
 sync_reports() {
     ensure_remote
     if [[ -d "$REPORT_DIR" ]]; then
-        rclone copy "$REPORT_DIR" "$REMOTE_BASE/reports" --create-empty-src-dirs
+        step "Uploading reports to Google Drive"
+        rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+            copy "$REPORT_DIR" "$REMOTE_BASE/reports" --create-empty-src-dirs --stats 10s
     fi
 }
 
 sync_backups() {
     ensure_remote
     if [[ -d "$BACKUP_DIR" ]]; then
-        rclone copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres"
+        step "Uploading PostgreSQL backups to Google Drive"
+        rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+            copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s
     fi
 }
 
@@ -264,7 +274,9 @@ create_backup() {
     fi
     mv -- "$temporary" "$backup"
     docker exec -i "$DB_CONTAINER" pg_restore --list - < "$backup" >/dev/null
-    rclone copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres"
+    step "Uploading PostgreSQL backups to Google Drive"
+    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+        copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s
     mapfile -t local_backups < <(find "$BACKUP_DIR" -maxdepth 1 -type f -name "${POSTGRES_DB}_*.dump" -printf '%f\n' | sort -r)
     for old_backup in "${local_backups[@]:$BACKUP_KEEP_LOCAL}"; do
         rm -f -- "$BACKUP_DIR/$old_backup"
@@ -396,13 +408,16 @@ start_services() {
     compose config -q
 
     if [[ "$ACTION" == rebuild ]]; then
+        step "Rebuilding Docker images without cache"
         compose --profile bi build --no-cache superset schema-init
         compose --profile jobs build --no-cache importer
     elif [[ "$ACTION" != restart ]]; then
+        step "Building Docker images"
         compose --profile bi build superset schema-init
         compose --profile jobs build importer
     fi
 
+    step "Starting PostgreSQL and waiting for health check"
     ensure_database
     if [[ -n "$BACPAC" ]]; then
         network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$DB_CONTAINER")"
@@ -444,12 +459,16 @@ SQL
     fi
 
     if [[ "$ACTION" == restart ]]; then
+        step "Restarting PostgreSQL and Superset"
         compose --profile bi up -d --wait superset
         compose --profile bi restart db superset
     fi
+    step "Starting Superset and waiting for health"
     compose --profile bi up -d --wait superset
+    step "Installing and verifying report/backup timers"
     install_timers
     if [[ "$ACTION" == up ]]; then
+        step "Running the first report import"
         run_reports
     fi
     compose --profile bi ps db superset
