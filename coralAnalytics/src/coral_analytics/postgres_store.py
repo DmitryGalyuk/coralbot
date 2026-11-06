@@ -3,7 +3,7 @@ from datetime import date
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import Date, Float, Integer, String, create_engine
+from sqlalchemy import Date, Float, Integer, String, create_engine, inspect
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -97,6 +97,23 @@ def create_local_engine():
 
 def create_schema(engine) -> None:
     Base.metadata.create_all(engine)
+    inspector = inspect(engine)
+    primary_key = inspector.get_pk_constraint("titles", schema="public")
+    unique_constraints = inspector.get_unique_constraints("titles", schema="public")
+    unique_indexes = inspector.get_indexes("titles", schema="public")
+    rank_is_unique = "rank" in (primary_key.get("constrained_columns") or []) or any(
+        constraint.get("column_names") == ["rank"] for constraint in unique_constraints
+    ) or any(
+        index.get("unique") and index.get("column_names") == ["rank"]
+        for index in unique_indexes
+    )
+    if not rank_is_unique:
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE UNIQUE INDEX IF NOT EXISTS titles_rank_uq "
+                "ON public.titles (rank)"
+            )
+
     statement = insert(Title).values(TITLE_ROWS)
     statement = statement.on_conflict_do_update(
         index_elements=[Title.rank],
