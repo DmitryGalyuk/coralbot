@@ -203,9 +203,6 @@ ensure_remote() {
     configured_remotes="$(rclone listremotes)"
     printf '%s\n' "$configured_remotes" | grep -Fxq "$remote_name" || \
         fail "rclone remote '$remote_name' is not configured. Available remotes: ${configured_remotes//$'\n'/, }. Update RCLONE_REMOTE in .env"
-    step "Checking Google Drive folders under $REMOTE_BASE"
-    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 mkdir "$REMOTE_BASE/reports"
-    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 mkdir "$REMOTE_BASE/backups/postgres"
 }
 
 ensure_linger() {
@@ -232,8 +229,11 @@ sync_reports() {
     ensure_remote
     if [[ -d "$REPORT_DIR" ]]; then
         step "Uploading reports to Google Drive"
-        rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
-            copy "$REPORT_DIR" "$REMOTE_BASE/reports" --create-empty-src-dirs --stats 10s
+        if ! rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+            copy "$REPORT_DIR" "$REMOTE_BASE/reports" --create-empty-src-dirs --stats 10s; then
+            printf 'Drive upload failed. Local reports remain under %s. Check that the Google account has Editor access and the rclone scope allows writing.\n' "$REPORT_DIR" >&2
+            return 1
+        fi
     fi
 }
 
@@ -241,8 +241,11 @@ sync_backups() {
     ensure_remote
     if [[ -d "$BACKUP_DIR" ]]; then
         step "Uploading PostgreSQL backups to Google Drive"
-        rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
-            copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s
+        if ! rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+            copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s; then
+            printf 'Drive upload failed. Local backups remain under %s. Check that the Google account has Editor access and the rclone scope allows writing.\n' "$BACKUP_DIR" >&2
+            return 1
+        fi
     fi
 }
 
@@ -275,8 +278,11 @@ create_backup() {
     mv -- "$temporary" "$backup"
     docker exec -i "$DB_CONTAINER" pg_restore --list - < "$backup" >/dev/null
     step "Uploading PostgreSQL backups to Google Drive"
-    rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
-        copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s
+    if ! rclone --contimeout 15s --timeout 60s --retries 1 --low-level-retries 2 \
+        copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres" --stats 10s; then
+        printf 'Drive upload failed. The new database backup remains locally at %s. Check Drive write permissions and retry with coralctl sync.\n' "$backup" >&2
+        return 1
+    fi
     mapfile -t local_backups < <(find "$BACKUP_DIR" -maxdepth 1 -type f -name "${POSTGRES_DB}_*.dump" -printf '%f\n' | sort -r)
     for old_backup in "${local_backups[@]:$BACKUP_KEEP_LOCAL}"; do
         rm -f -- "$BACKUP_DIR/$old_backup"
