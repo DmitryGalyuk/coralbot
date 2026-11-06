@@ -63,7 +63,9 @@ def archive_report(source: Path, processed_dir: Path) -> Path:
 
 def import_report(engine, report_path: Path, report_date: date, processed_dir: Path) -> int:
     report_contents = report_path.read_bytes()
+    logger.info("Initializing PostgreSQL schema and title lookup")
     create_schema(engine)
+    logger.info("Writing report rows from %s", report_path.name)
     row_count = process_report_bytes(engine, report_contents, report_path.name, report_date)
     archive_path = archive_report(report_path, processed_dir)
     logger.info(

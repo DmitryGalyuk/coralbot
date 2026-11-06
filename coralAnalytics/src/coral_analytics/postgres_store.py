@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import date
 from pathlib import Path
 
@@ -9,6 +10,9 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from coral_analytics.report2table import report_to_table
+
+
+logger = logging.getLogger(__name__)
 
 
 class Base(DeclarativeBase):
@@ -95,25 +99,48 @@ def create_local_engine():
     return create_engine(url, pool_pre_ping=True)
 
 
+def ensure_unique_key(engine, table_name: str, columns: tuple[str, ...], index_name: str) -> None:
+    inspector = inspect(engine)
+    unique_keys = []
+    primary_key = inspector.get_pk_constraint(table_name, schema="public")
+    if primary_key.get("constrained_columns"):
+        unique_keys.append(primary_key["constrained_columns"])
+    unique_keys.extend(
+        constraint.get("column_names") or []
+        for constraint in inspector.get_unique_constraints(table_name, schema="public")
+    )
+    unique_keys.extend(
+        index.get("column_names") or []
+        for index in inspector.get_indexes(table_name, schema="public")
+        if index.get("unique")
+    )
+    required = set(columns)
+    if any(len(key) == len(columns) and set(key) == required for key in unique_keys):
+        logger.info("Unique key public.%s(%s) exists", table_name, ", ".join(columns))
+        return
+
+    logger.warning(
+        "Unique key public.%s(%s) is missing; creating it",
+        table_name,
+        ", ".join(columns),
+    )
+    quoted_columns = ", ".join(f'"{column}"' for column in columns)
+    with engine.begin() as connection:
+        connection.exec_driver_sql(
+            f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" '
+            f'ON public."{table_name}" ({quoted_columns})'
+        )
+
+
 def create_schema(engine) -> None:
     Base.metadata.create_all(engine)
-    inspector = inspect(engine)
-    primary_key = inspector.get_pk_constraint("titles", schema="public")
-    unique_constraints = inspector.get_unique_constraints("titles", schema="public")
-    unique_indexes = inspector.get_indexes("titles", schema="public")
-    rank_is_unique = "rank" in (primary_key.get("constrained_columns") or []) or any(
-        constraint.get("column_names") == ["rank"] for constraint in unique_constraints
-    ) or any(
-        index.get("unique") and index.get("column_names") == ["rank"]
-        for index in unique_indexes
+    ensure_unique_key(engine, "titles", ("rank",), "titles_rank_uq")
+    ensure_unique_key(
+        engine,
+        "dailystats",
+        ("date_added", "id"),
+        "dailystats_date_added_id_uq",
     )
-    if not rank_is_unique:
-        with engine.begin() as connection:
-            connection.exec_driver_sql(
-                "CREATE UNIQUE INDEX IF NOT EXISTS titles_rank_uq "
-                "ON public.titles (rank)"
-            )
-
     statement = insert(Title).values(TITLE_ROWS)
     statement = statement.on_conflict_do_update(
         index_elements=[Title.rank],
