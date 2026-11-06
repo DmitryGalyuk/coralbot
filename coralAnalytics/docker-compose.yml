@@ -25,6 +25,7 @@ services:
 
   importer:
     container_name: coral-analytics-importer
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     build:
       context: .
       dockerfile: importer.Dockerfile
@@ -41,6 +42,8 @@ services:
       REPORT_DATE: ${REPORT_DATE:-}
       REPORT_PERIOD: ${REPORT_PERIOD:-}
       REPORT_DIR: /data/reports
+      REPORT_INCOMING_DIR: /data/reports/incoming
+      REPORT_PROCESSED_DIR: /data/reports/processed
       POSTGRES_DB: ${POSTGRES_DB:-coral}
       POSTGRES_USER: ${POSTGRES_USER:-coral}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}

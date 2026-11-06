@@ -9,7 +9,9 @@
 - `reset-db` — ручной destructive task для отладки: пересоздаёт только `dailystats`, `titles` и `coralview`, не удаляя metadata Superset.
 - `importer` — одноразовый Python job: скачивает или читает Excel, преобразует его и делает upsert в `dailystats`.
 - `superset` — Apache Superset, запускается отдельно профилем `bi`; его metadata хранится в отдельной базе `superset`.
-- `data/reports` — локальный архив исходных Excel-файлов; содержимое не попадает в git.
+- `data/reports/incoming` — скачанные или ожидающие обработки Excel-файлы.
+- `data/reports/processed` — локальный архив Excel после успешной загрузки в PostgreSQL.
+- `data/backups/postgres` — локальные custom-format дампы PostgreSQL; содержимое `data/` не попадает в git.
 
 В Superset добавьте подключение к аналитической БД `coral` по адресу `db:5432`. Встроенная metadata DB Superset не используется для данных отчёта.
 
@@ -19,76 +21,58 @@
 2. Запустить PostgreSQL: `docker compose up -d db`.
 3. Выполнить ежедневный импорт: `docker compose run --rm importer`.
 
-Для запуска BI: `docker compose --profile bi up -d --build superset`, затем открыть `http://localhost:8088`. Если в `superset/` есть dataset и dashboard exports, Superset импортирует их при старте; сами exports теперь можно хранить в Git. Для сервера Superset опубликован только на localhost; внешний доступ настраивайте через VPN или reverse proxy с аутентификацией.
+Для локального запуска BI: `docker compose --profile bi up -d --build superset`, затем открыть `http://localhost:8088`. Если в `superset/` есть dataset и dashboard exports, Superset импортирует их при старте; сами exports можно хранить в Git. На домашнем сервере порт Superset публикуется на сетевых интерфейсах хоста, поэтому ограничьте доступ firewall-ом и используйте VPN или защищённый reverse proxy.
 
 Для полного сброса Coral-таблиц во время отладки: `docker compose --profile maintenance run --rm reset-db`. Команда удаляет данные `dailystats` и пересоздаёт справочник и view; она не удаляет Superset metadata или PostgreSQL volume целиком.
 
-Для безопасного перезапуска Postgres и Superset на домашнем сервере используйте `./restart-home-linux.sh`. Эта команда только перезапускает контейнеры и не запускает восстановление BACPAC. После `git pull`, если нужно пересобрать образы, используйте `./restart-home-linux.sh --build`; данные PostgreSQL остаются в Docker volume.
-
-## Восстановление SQL Server BACPAC
-
-`restore_bacpac.py` использует схему и данные из BACPAC как источник истины: импортирует архив во временную SQL Server базу, переносит её в отдельную PostgreSQL базу и запускает проектный `schema-init` для заполнения `titles` и создания `coralview`. Старые SQL-проекты при этом не используются. Нужны Docker Compose, `psql`, SQL Server с правом создавать базы и PostgreSQL-пользователь с правами создания баз. По умолчанию требуются `sqlpackage` и `pgloader` в `PATH`; для Docker-mode нужны `docker`, доступная общая сеть и имя PostgreSQL сервиса в этой сети.
-
-```sh
-SQLSERVER_URL='mssql://user:password@server:1433/master' \
-POSTGRES_URL='postgresql://coral:password@localhost:5432/coral' \
-python3 restore_bacpac.py azure_db_backup/coral-2026-11-5-16-17.bacpac \
-	--confirm-database coral
-```
-
-Для контейнерного запуска `sqlpackage` и `pgloader` задайте `RESTORE_DOCKER_NETWORK` и `PGLOADER_POSTGRES_HOST`, например `coralanalytics_default` и `db`. SQL Server должен быть доступен по `SQLSERVER_URL` в этой же Docker-сети.
-
-Скрипт просит интерактивно подтвердить имя целевой базы. Только после успешного импорта, инициализации схемы и проверки `coralview` он заменяет целевую базу; база `superset` не затрагивается. SQL Server views из BACPAC не копируются; PostgreSQL `coralview` создаётся проектным initializer.
+Управление домашним сервером выполняется только через `coralctl`: `coralctl restart` перезапускает контейнеры, `coralctl rebuild` пересобирает образы, а `coralctl setup` включает оба таймера. Ни одна из этих команд не сбрасывает БД; восстановление возможно только явной командой `coralctl restore FILE` или `coralctl setup --bacpac FILE`.
 
 Схема создаёт таблицы `dailystats` и `titles`, наполняет `titles` справочником рангов и создаёт `public.coralview`. View вычисляет календарные поля, `IsDirector`, `IsLatestDate`, `TitleName`/`TitleRank`; `Path` строится как цепочка ID от корня структуры в рамках даты snapshot. Имя отчёта сохраняется в `file_name`, дата отчёта берётся из `REPORT_DATE`, если задана, иначе из текущей локальной даты. Период скачивания можно переопределить через `REPORT_PERIOD`.
 
 Повторная загрузка за ту же дату обновляет строки с совпадающим `id`, а не добавляет дубликаты.
 
-## Импорт готового Excel
+## Исторический архив отчётов
 
-Поместить файл в `data/reports` и выполнить, например:
+Скопируйте Excel-файлы в `coralAnalytics/data/reports/incoming/`, сохраняя дату в имени как `YYYY-MM-DD.xlsx`, затем запустите:
 
 ```sh
-docker compose run --rm importer --file /data/reports/2026-11-04.xlsx
+coralAnalytics/coralctl reports --pending-only
 ```
 
-Имя файла должно содержать дату в формате `YYYY-MM-DD.xlsx`, либо нужно передать `--date YYYY-MM-DD`.
+Отчёт перемещается в `processed/` только после успешной загрузки в PostgreSQL. При ошибке он остаётся в `incoming/` для повтора. Ежедневный timer сначала обрабатывает ожидающие файлы, затем скачивает новый отчёт и после успеха загружает оба каталога в Google Drive. Синхронизация использует `rclone copy`, поэтому удаление локального файла не удаляет облачную копию.
 
-## Ночное расписание
+## Домашний Linux-сервер
 
-Для переноса на домашний Linux-сервер:
+Установите `rclone` (на Debian/Ubuntu: `sudo apt install rclone`). Выполните `rclone config` под тем же Linux-пользователем, который запускает Coral, и создайте Google Drive remote с именем `gdrive`. В `coralAnalytics/.env` задайте `RCLONE_REMOTE=gdrive:coral-analytics`. OAuth-конфигурация `rclone` остаётся в домашнем каталоге пользователя, а не в Git.
 
 ```sh
 git checkout <нужная-ветка>
 cp coralAnalytics/.env.example coralAnalytics/.env
-# Заполнить Coral credentials и локальные пароли в coralAnalytics/.env
-chmod +x coralAnalytics/deploy-home-linux.sh
-coralAnalytics/deploy-home-linux.sh --schedule 02:00
+# Заполнить Coral credentials, пароли и RCLONE_REMOTE
+chmod +x coralAnalytics/coralctl
+coralAnalytics/coralctl setup --schedule 02:00
 ```
 
-Один управляющий скрипт запускает сервисы и каждый раз устанавливает/включает daily user-level `systemd` timer. Если `.env` отсутствует, скрипт создаёт его из `.env.example` и останавливается, чтобы можно было заполнить секреты. Примеры:
+`coralctl` поддерживает эти команды:
 
 ```sh
-# Обычный запуск/обновление с использованием Docker build cache
-coralAnalytics/deploy-home-linux.sh --schedule 02:00
-
-# Только перезапуск контейнеров без пересборки
-coralAnalytics/deploy-home-linux.sh --restart
-
-# Пересборка образов без Docker build cache
-coralAnalytics/deploy-home-linux.sh --rebuild
-
-# Явно восстановить BACPAC; перед заменой базы будет запрошено подтверждение
-coralAnalytics/deploy-home-linux.sh \
-	--bacpac coralAnalytics/azure_db_backup/coral-2026-11-5-16-17.bacpac \
-	--schedule 02:00
+coralAnalytics/coralctl setup --schedule 02:00
+coralAnalytics/coralctl restart
+coralAnalytics/coralctl rebuild
+coralAnalytics/coralctl reports --pending-only
+coralAnalytics/coralctl backup
+coralAnalytics/coralctl restore coral_20261106T030000Z.dump
+coralAnalytics/coralctl sync
+coralAnalytics/coralctl status
 ```
 
-Без `--bacpac` скрипт не запускает restore и не меняет данные PostgreSQL. `--restart` нельзя совмещать с `--bacpac`. При restore скрипт поднимет временный SQL Server и попросит подтвердить замену базы; SQL Server staging удаляется после восстановления. Каталог `azure_db_backup` исключён из Git.
+`setup` сразу импортирует текущий отчёт, затем ставит два timer: ежедневную загрузку отчётов и PostgreSQL backup в день `BACKUP_DAY` (по умолчанию 15-е число, время `BACKUP_TIME`, по умолчанию 03:00). Оба запускают те же команды, что и вручную. Если `.env` отсутствует, `coralctl` создаёт его из `.env.example` и останавливается для заполнения.
 
-Если lingering ещё выключен, скрипт включает его через `sudo loginctl enable-linger "$USER"`, чтобы timer работал после выхода пользователя и перезагрузки. Пользователь должен иметь доступ к Docker. Статус расписания: `systemctl --user list-timers coral-import.timer`; логи: `journalctl --user -u coral-import.service`. Superset опубликован согласно `SUPERSET_LOCAL_PORT`; для внешнего доступа используйте firewall и VPN, не открывайте порт в интернет без защиты.
+`backup` создаёт локальный `pg_dump` custom archive, проверяет его и отправляет в Drive. По умолчанию локально сохраняются последние три успешно загруженных дампа (`BACKUP_KEEP_LOCAL=3`); Google Drive-копии не удаляются. `restore FILE` перед восстановлением делает текущую резервную копию, восстанавливает во временную БД и просит подтвердить переключение.
 
-Проверка timer: `systemctl --user status coral-import.timer`. Логи импорта: `journalctl --user -u coral-import.service`; логи базы: `docker compose -f coralAnalytics/docker-compose.yml logs db`. Docker volume не заменяет резервные копии: настройте периодический `pg_dump` на другой диск или удалённое хранилище.
+Для BACPAC используйте `coralAnalytics/coralctl setup --bacpac FILE`; без этого параметра база не восстанавливается. Скрипт проверяет Linux x86_64, Docker Compose, rclone remote и user-level systemd. Если необходимо, он включает lingering через `sudo loginctl enable-linger`, чтобы timers работали после выхода пользователя.
+
+Статус расписаний: `systemctl --user list-timers coral-reports.timer coral-backup.timer`. Логи: `journalctl --user -u coral-reports.service` и `journalctl --user -u coral-backup.service`. Отчёты и дампы хранятся локально под `coralAnalytics/data/` и копируются в remote, не синхронизируются с удалением. Superset доступен по настроенному `SUPERSET_LOCAL_PORT`; для внешнего доступа используйте VPN/firewall.
 
 ## Подключение к PostgreSQL
 

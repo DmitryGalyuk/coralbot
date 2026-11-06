@@ -1,0 +1,512 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+umask 077
+
+ANALYTICS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$ANALYTICS_DIR/.env"
+SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+COMMAND="setup"
+ACTION="up"
+SCHEDULE_OVERRIDE=""
+BACPAC=""
+RESTORE_FILE=""
+PENDING_ONLY=0
+SQL_CONTAINER=""
+RESTORE_STAGE=""
+DB_CONTAINER=""
+RESTORE_SUPERSET_STOPPED=0
+
+usage() {
+    cat <<'EOF'
+Usage: coralctl [COMMAND] [OPTIONS]
+
+Commands:
+  setup              Start services and install report/backup timers (default)
+  restart            Restart PostgreSQL and Superset
+  rebuild            Rebuild images, then start services
+  reports            Download/process a report, archive it, and upload reports
+  backup             Create a local PostgreSQL dump and upload backups
+  restore FILE       Restore a PostgreSQL custom-format dump after confirmation
+  sync               Upload local reports and database backups to Google Drive
+  status             Show service and timer status
+
+Options:
+  --restart          Restart services during setup
+  --rebuild          Rebuild images without Docker build cache
+  --schedule HH:MM   Set the daily report timer (default from .env, then 02:00)
+  --bacpac FILE      Explicitly restore a SQL Server BACPAC during setup
+  --pending-only     Process incoming reports without downloading a new one
+  --help             Show this help
+
+PostgreSQL is restored only when --bacpac or the restore command is explicit.
+EOF
+}
+
+fail() {
+    printf 'Error: %s\n' "$1" >&2
+    exit 1
+}
+
+cleanup() {
+    if [[ -n "$RESTORE_STAGE" && -n "$DB_CONTAINER" ]]; then
+        db_exec psql -d postgres -c "DROP DATABASE IF EXISTS \"$RESTORE_STAGE\" WITH (FORCE)" >/dev/null 2>&1 || true
+    fi
+    if [[ -n "$SQL_CONTAINER" ]] && docker inspect "$SQL_CONTAINER" >/dev/null 2>&1; then
+        docker rm -f "$SQL_CONTAINER" >/dev/null
+    fi
+    if ((RESTORE_SUPERSET_STOPPED)); then
+        compose --profile bi up -d superset >/dev/null 2>&1 || true
+    fi
+}
+
+read_env_value() {
+    local key="$1"
+    local line value
+    line="$(grep -m1 "^${key}=" "$ENV_FILE" || true)"
+    value="${line#*=}"
+    if [[ "$value" == \"*\" && ${#value} -ge 2 ]]; then
+        value="${value:1:${#value}-2}"
+    elif [[ "$value" == \'*\' && ${#value} -ge 2 ]]; then
+        value="${value:1:${#value}-2}"
+    fi
+    printf '%s' "$value"
+}
+
+if (($#)) && [[ "$1" != -* ]]; then
+    case "$1" in
+        setup|start) COMMAND=setup ;;
+        restart) COMMAND=setup; ACTION=restart ;;
+        rebuild) COMMAND=setup; ACTION=rebuild ;;
+        reports|backup|restore|sync|status) COMMAND="$1" ;;
+        *) fail "Unknown command: $1" ;;
+    esac
+    shift
+fi
+
+while (($#)); do
+    case "$1" in
+        --schedule)
+            (($# >= 2)) || fail "--schedule needs HH:MM"
+            SCHEDULE_OVERRIDE="$2"
+            shift 2
+            ;;
+        --bacpac)
+            (($# >= 2)) || fail "--bacpac needs a file path"
+            BACPAC="$2"
+            shift 2
+            ;;
+        --restart)
+            [[ "$COMMAND" == setup && "$ACTION" == up ]] || fail "--restart only applies to setup"
+            ACTION=restart
+            shift
+            ;;
+        --rebuild)
+            [[ "$COMMAND" == setup && "$ACTION" == up ]] || fail "--rebuild only applies to setup"
+            ACTION=rebuild
+            shift
+            ;;
+        --pending-only)
+            [[ "$COMMAND" == reports ]] || fail "--pending-only only applies to reports"
+            PENDING_ONLY=1
+            shift
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            if [[ "$COMMAND" == restore && -z "$RESTORE_FILE" ]]; then
+                RESTORE_FILE="$1"
+                shift
+            else
+                fail "Unknown option or extra argument: $1"
+            fi
+            ;;
+    esac
+done
+
+if [[ ! -f "$ENV_FILE" ]]; then
+    if [[ "$COMMAND" == setup ]]; then
+        cp "$ANALYTICS_DIR/.env.example" "$ENV_FILE"
+        chmod 600 "$ENV_FILE"
+        fail "Created .env. Configure Coral, PostgreSQL, and RCLONE_REMOTE, then rerun"
+    fi
+    fail "Missing $ENV_FILE"
+fi
+chmod 600 "$ENV_FILE"
+
+POSTGRES_DB="$(read_env_value POSTGRES_DB)"
+POSTGRES_USER="$(read_env_value POSTGRES_USER)"
+POSTGRES_PASSWORD="$(read_env_value POSTGRES_PASSWORD)"
+POSTGRES_LOCAL_PORT="$(read_env_value POSTGRES_LOCAL_PORT)"
+RCLONE_REMOTE="$(read_env_value RCLONE_REMOTE)"
+REPORT_TIME="$(read_env_value REPORT_TIME)"
+BACKUP_TIME="$(read_env_value BACKUP_TIME)"
+BACKUP_DAY="$(read_env_value BACKUP_DAY)"
+BACKUP_KEEP_LOCAL="$(read_env_value BACKUP_KEEP_LOCAL)"
+REPORT_DIR="$ANALYTICS_DIR/data/reports"
+INCOMING_DIR="$REPORT_DIR/incoming"
+PROCESSED_DIR="$REPORT_DIR/processed"
+BACKUP_DIR_VALUE="$(read_env_value BACKUP_DIR)"
+export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
+[[ -n "$REPORT_TIME" ]] || REPORT_TIME=02:00
+[[ -n "$BACKUP_TIME" ]] || BACKUP_TIME=03:00
+[[ -n "$BACKUP_DAY" ]] || BACKUP_DAY=15
+[[ -n "$BACKUP_KEEP_LOCAL" ]] || BACKUP_KEEP_LOCAL=3
+[[ -z "$SCHEDULE_OVERRIDE" ]] || REPORT_TIME="$SCHEDULE_OVERRIDE"
+[[ -n "$POSTGRES_LOCAL_PORT" ]] || POSTGRES_LOCAL_PORT=5432
+[[ -n "$BACKUP_DIR_VALUE" ]] || BACKUP_DIR_VALUE=data/backups/postgres
+if [[ "$BACKUP_DIR_VALUE" = /* ]]; then
+    BACKUP_DIR="$BACKUP_DIR_VALUE"
+else
+    BACKUP_DIR="$ANALYTICS_DIR/$BACKUP_DIR_VALUE"
+fi
+REMOTE_BASE="${RCLONE_REMOTE%/}"
+
+[[ -n "$POSTGRES_DB" && "$POSTGRES_DB" =~ ^[A-Za-z_][A-Za-z0-9_]{0,40}$ ]] || fail "POSTGRES_DB must be a simple PostgreSQL database name"
+[[ -n "$POSTGRES_USER" && "$POSTGRES_USER" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || fail "POSTGRES_USER must be a simple PostgreSQL identifier"
+[[ -n "$POSTGRES_PASSWORD" ]] || fail "Set POSTGRES_PASSWORD in .env"
+[[ "$REPORT_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]] || fail "REPORT_TIME must be HH:MM"
+[[ "$BACKUP_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]] || fail "BACKUP_TIME must be HH:MM"
+[[ "$BACKUP_DAY" =~ ^([1-9]|[12][0-9]|3[01])$ ]] || fail "BACKUP_DAY must be 1..31"
+[[ "$BACKUP_KEEP_LOCAL" =~ ^[1-9][0-9]*$ ]] || fail "BACKUP_KEEP_LOCAL must be a positive number"
+
+compose() {
+    docker compose \
+        --project-directory "$ANALYTICS_DIR" \
+        --env-file "$ENV_FILE" \
+        -f "$ANALYTICS_DIR/docker-compose.yml" \
+        "$@"
+}
+
+acquire_data_lock() {
+    command -v flock >/dev/null 2>&1 || fail "Install util-linux (flock)"
+    mkdir -p "$ANALYTICS_DIR/data"
+    exec 7>"$ANALYTICS_DIR/data/.coralctl-data.lock"
+    flock -n 7 || fail "Another Coral report, backup, restore, or sync task is already running"
+}
+
+release_data_lock() {
+    exec 7>&-
+}
+
+ensure_remote() {
+    command -v rclone >/dev/null 2>&1 || fail "Install rclone and configure a Google Drive remote first"
+    [[ "$RCLONE_REMOTE" == *:* ]] || fail "Set RCLONE_REMOTE, for example gdrive:coral-analytics"
+    local remote_name="${RCLONE_REMOTE%%:*}:"
+    rclone listremotes | grep -Fxq "$remote_name" || \
+        fail "rclone remote '$remote_name' is not configured for this Linux user"
+    rclone mkdir "$REMOTE_BASE/reports"
+    rclone mkdir "$REMOTE_BASE/backups/postgres"
+}
+
+ensure_linger() {
+    systemctl --user show-environment >/dev/null 2>&1 || fail "Run setup from a login session with a systemd user manager"
+    if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null || true)" != yes ]]; then
+        command -v sudo >/dev/null 2>&1 || fail "Enable lingering with: sudo loginctl enable-linger $USER"
+        sudo loginctl enable-linger "$USER" || fail "Could not enable systemd lingering for $USER"
+    fi
+}
+
+db_exec() {
+    [[ -n "$DB_CONTAINER" ]] || DB_CONTAINER="$(compose ps -q db)"
+    [[ -n "$DB_CONTAINER" ]] || fail "PostgreSQL container is not running"
+    docker exec -e "PGPASSWORD=$POSTGRES_PASSWORD" "$DB_CONTAINER" "$@"
+}
+
+ensure_database() {
+    compose up -d --wait db
+    DB_CONTAINER="$(compose ps -q db)"
+    [[ -n "$DB_CONTAINER" ]] || fail "PostgreSQL container did not start"
+}
+
+sync_reports() {
+    ensure_remote
+    if [[ -d "$REPORT_DIR" ]]; then
+        rclone copy "$REPORT_DIR" "$REMOTE_BASE/reports" --create-empty-src-dirs
+    fi
+}
+
+sync_backups() {
+    ensure_remote
+    if [[ -d "$BACKUP_DIR" ]]; then
+        rclone copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres"
+    fi
+}
+
+sync_all() {
+    sync_reports
+    sync_backups
+}
+
+create_backup() {
+    ensure_remote
+    ensure_database
+    command -v flock >/dev/null 2>&1 || fail "Install util-linux (flock)"
+    mkdir -p "$BACKUP_DIR"
+    local timestamp backup temporary old_backup
+    local -a local_backups=()
+    exec 8>"$BACKUP_DIR/.backup.lock"
+    flock -n 8 || fail "A database backup is already running"
+    timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+    backup="$BACKUP_DIR/${POSTGRES_DB}_${timestamp}.dump"
+    temporary="$backup.part"
+    if ! docker exec -e "PGPASSWORD=$POSTGRES_PASSWORD" "$DB_CONTAINER" \
+        pg_dump --format=custom --no-owner --no-acl -U "$POSTGRES_USER" -d "$POSTGRES_DB" > "$temporary"; then
+        rm -f -- "$temporary"
+        fail "pg_dump failed; no backup was retained"
+    fi
+    if [[ ! -s "$temporary" ]]; then
+        rm -f -- "$temporary"
+        fail "pg_dump produced an empty file"
+    fi
+    mv -- "$temporary" "$backup"
+    docker exec -i "$DB_CONTAINER" pg_restore --list - < "$backup" >/dev/null
+    rclone copy "$BACKUP_DIR" "$REMOTE_BASE/backups/postgres"
+    mapfile -t local_backups < <(find "$BACKUP_DIR" -maxdepth 1 -type f -name "${POSTGRES_DB}_*.dump" -printf '%f\n' | sort -r)
+    for old_backup in "${local_backups[@]:$BACKUP_KEEP_LOCAL}"; do
+        rm -f -- "$BACKUP_DIR/$old_backup"
+    done
+    printf 'Database backup saved locally and uploaded: %s\n' "$backup"
+}
+
+restore_postgres_backup() {
+    [[ -n "$RESTORE_FILE" ]] || fail "Usage: coralctl restore FILE.dump"
+    local archive stage old confirmation suffix
+    archive="$(realpath -e -- "$RESTORE_FILE")"
+    command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+    ensure_remote
+    ensure_database
+    docker exec -i "$DB_CONTAINER" pg_restore --list - < "$archive" >/dev/null || \
+        fail "File is not a valid pg_dump custom-format archive"
+    [[ -t 0 ]] || fail "Run restore interactively so the database replacement can be confirmed"
+    read -r -p "Type $POSTGRES_DB to replace the database after restoring: " confirmation
+    [[ "$confirmation" == "$POSTGRES_DB" ]] || fail "Confirmation did not match; database unchanged"
+
+    create_backup
+    suffix="$(date -u +%Y%m%d%H%M%S)"
+    stage="coral_restore_${suffix}"
+    old="coral_old_${suffix}"
+    RESTORE_STAGE="$stage"
+    trap cleanup EXIT
+    db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+        -c "CREATE DATABASE \"$stage\" OWNER \"$POSTGRES_USER\""
+    docker exec -i -e "PGPASSWORD=$POSTGRES_PASSWORD" "$DB_CONTAINER" \
+        pg_restore --no-owner --no-acl --exit-on-error -U "$POSTGRES_USER" -d "$stage" - < "$archive"
+    local has_table
+    has_table="$(db_exec psql -X -At -U "$POSTGRES_USER" -d "$stage" -c "SELECT to_regclass('public.dailystats') IS NOT NULL")"
+    [[ "$has_table" == t ]] || fail "Restored archive does not contain public.dailystats"
+
+    compose --profile bi stop superset
+    RESTORE_SUPERSET_STOPPED=1
+    db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+        -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$POSTGRES_DB' AND pid <> pg_backend_pid()"
+    db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+        -c "ALTER DATABASE \"$POSTGRES_DB\" RENAME TO \"$old\""
+    if ! db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+        -c "ALTER DATABASE \"$stage\" RENAME TO \"$POSTGRES_DB\""; then
+        db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+            -c "ALTER DATABASE \"$old\" RENAME TO \"$POSTGRES_DB\""
+        fail "Could not switch restored database; original database was renamed back"
+    fi
+    RESTORE_STAGE=""
+    db_exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres \
+        -c "DROP DATABASE \"$old\" WITH (FORCE)"
+    compose --profile bi up -d --wait superset
+    RESTORE_SUPERSET_STOPPED=0
+    printf 'Database restored from %s\n' "$archive"
+}
+
+install_timers() {
+    local coralctl_path
+    coralctl_path="$ANALYTICS_DIR/coralctl"
+    mkdir -p "$SYSTEMD_USER_DIR"
+    cat > "$SYSTEMD_USER_DIR/coral-reports.service" <<EOF
+[Unit]
+Description=Download and archive the daily Coral report
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=$ANALYTICS_DIR
+Environment=HOME=$HOME
+Environment=PATH=$PATH
+ExecStart=$coralctl_path reports
+UMask=0077
+EOF
+    cat > "$SYSTEMD_USER_DIR/coral-reports.timer" <<EOF
+[Unit]
+Description=Daily Coral report download and Drive upload
+
+[Timer]
+OnCalendar=*-*-* $REPORT_TIME:00
+Persistent=true
+RandomizedDelaySec=300
+Unit=coral-reports.service
+
+[Install]
+WantedBy=timers.target
+EOF
+    cat > "$SYSTEMD_USER_DIR/coral-backup.service" <<EOF
+[Unit]
+Description=Back up Coral PostgreSQL and upload to Drive
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=$ANALYTICS_DIR
+Environment=HOME=$HOME
+Environment=PATH=$PATH
+ExecStart=$coralctl_path backup
+UMask=0077
+EOF
+    cat > "$SYSTEMD_USER_DIR/coral-backup.timer" <<EOF
+[Unit]
+Description=Monthly Coral PostgreSQL backup
+
+[Timer]
+OnCalendar=*-*-$BACKUP_DAY $BACKUP_TIME:00
+Persistent=true
+RandomizedDelaySec=300
+Unit=coral-backup.service
+
+[Install]
+WantedBy=timers.target
+EOF
+    systemctl --user daemon-reload
+    systemctl --user enable --now coral-reports.timer coral-backup.timer
+    systemctl --user is-active --quiet coral-reports.timer || fail "Daily reports timer is not active"
+    systemctl --user is-active --quiet coral-backup.timer || fail "Monthly backup timer is not active"
+}
+
+start_services() {
+    local network
+    [[ "$(uname -s)" == Linux ]] || fail "Run coralctl setup on Linux"
+    if [[ -n "$BACPAC" && "$(uname -m)" != x86_64 ]]; then
+        fail "The temporary SQL Server BACPAC importer requires Linux x86_64"
+    fi
+    if [[ -n "$BACPAC" ]]; then
+        command -v openssl >/dev/null 2>&1 || fail "Install openssl to generate a temporary SQL Server password"
+    fi
+    ensure_remote
+    mkdir -p "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
+    chmod 700 "$ANALYTICS_DIR/data" "$REPORT_DIR" "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
+    compose config -q
+
+    if [[ "$ACTION" == rebuild ]]; then
+        compose --profile bi build --no-cache superset schema-init
+        compose --profile jobs build --no-cache importer
+    elif [[ "$ACTION" != restart ]]; then
+        compose --profile bi build superset schema-init
+        compose --profile jobs build importer
+    fi
+
+    ensure_database
+    if [[ -n "$BACPAC" ]]; then
+        network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$DB_CONTAINER")"
+        [[ -n "$network" ]] || fail "Could not determine the Compose network"
+        SQL_CONTAINER="coral-bacpac-sql-$$"
+        local sql_alias="coral-bacpac-$$" sql_password
+        sql_password="CoralTmp_$(openssl rand -hex 16)!A1"
+        trap cleanup EXIT
+        docker run -d --platform linux/amd64 --name "$SQL_CONTAINER" \
+            --network "$network" --network-alias "$sql_alias" \
+            -e ACCEPT_EULA=Y -e MSSQL_PID=Developer \
+            -e "MSSQL_SA_PASSWORD=$sql_password" \
+            mcr.microsoft.com/mssql/server:2022-latest >/dev/null
+        local ready=0
+        for _ in $(seq 1 90); do
+            if docker logs "$SQL_CONTAINER" 2>&1 | grep -q 'SQL Server is now ready for client connections'; then
+                ready=1
+                break
+            fi
+            [[ "$(docker inspect --format '{{.State.Running}}' "$SQL_CONTAINER")" == true ]] || fail "Temporary SQL Server exited"
+            sleep 2
+        done
+        ((ready)) || fail "Temporary SQL Server did not become ready in time"
+        docker exec -i -e "SA_PASSWORD=$sql_password" "$SQL_CONTAINER" sh -c \
+            '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -b -i /dev/stdin' <<'SQL'
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'contained database authentication', 1;
+RECONFIGURE;
+SQL
+        local postgres_url
+        postgres_url="$(POSTGRES_USER="$POSTGRES_USER" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" POSTGRES_DB="$POSTGRES_DB" POSTGRES_LOCAL_PORT="$POSTGRES_LOCAL_PORT" python3 -c 'import os; from urllib.parse import quote; print("postgresql://{}:{}@localhost:{}/{}".format(quote(os.environ["POSTGRES_USER"], safe=""), quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_LOCAL_PORT"], quote(os.environ["POSTGRES_DB"], safe="")))')"
+        acquire_data_lock
+        SQLSERVER_URL="mssql://sa:${sql_password}@${sql_alias}:1433/master" \
+        POSTGRES_URL="$postgres_url" RESTORE_DOCKER_NETWORK="$network" \
+        PGLOADER_POSTGRES_HOST=db \
+            python3 "$ANALYTICS_DIR/restore_bacpac.py" "$BACPAC" --confirm-database "$POSTGRES_DB"
+        release_data_lock
+    fi
+
+    if [[ "$ACTION" == restart ]]; then
+        compose --profile bi up -d --wait superset
+        compose --profile bi restart db superset
+    fi
+    compose --profile bi up -d --wait superset
+    install_timers
+    if [[ "$ACTION" == up ]]; then
+        run_reports
+    fi
+    compose --profile bi ps db superset
+    systemctl --user list-timers --all coral-reports.timer coral-backup.timer
+}
+
+run_reports() {
+    ensure_remote
+    ensure_database
+    acquire_data_lock
+    if ((PENDING_ONLY)); then
+        compose --profile jobs run --rm importer python -m coral_analytics.run --pending-only
+    else
+        compose --profile jobs run --rm importer
+    fi
+    sync_reports
+}
+
+case "$COMMAND" in
+    setup)
+        [[ -n "$BACPAC" ]] && BACPAC="$(realpath -e -- "$BACPAC")"
+        [[ -z "$BACPAC" || "${BACPAC,,}" == *.bacpac ]] || fail "Input must be a .bacpac file"
+        [[ -z "$BACPAC" || "$ACTION" != restart ]] || fail "--bacpac cannot be combined with --restart"
+        for key in CORAL_LOGIN CORAL_PASSWORD SUPERSET_SECRET_KEY SUPERSET_ADMIN_PASSWORD; do
+            value="$(read_env_value "$key")"
+            [[ -n "$value" && "$value" != replace-me && "$value" != replace-with-* ]] || fail "Set $key in .env"
+        done
+        for command_name in docker python3 systemctl loginctl id; do
+            command -v "$command_name" >/dev/null 2>&1 || fail "Install '$command_name' first"
+        done
+        docker compose version >/dev/null 2>&1 || fail "Install Docker Compose v2"
+        ensure_linger
+        start_services
+        printf 'Coral services are up. Daily reports: %s; monthly database backup: day %s at %s.\n' "$REPORT_TIME" "$BACKUP_DAY" "$BACKUP_TIME"
+        ;;
+    reports)
+        [[ -n "$(read_env_value CORAL_LOGIN)" && -n "$(read_env_value CORAL_PASSWORD)" ]] || fail "Set CORAL_LOGIN and CORAL_PASSWORD in .env"
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        run_reports
+        ;;
+    backup)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        acquire_data_lock
+        create_backup
+        ;;
+    restore)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        acquire_data_lock
+        restore_postgres_backup
+        ;;
+    sync)
+        command -v rclone >/dev/null 2>&1 || fail "Install rclone first"
+        acquire_data_lock
+        sync_all
+        ;;
+    status)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        command -v systemctl >/dev/null 2>&1 || fail "Install systemd"
+        compose --profile bi ps db superset
+        systemctl --user list-timers --all coral-reports.timer coral-backup.timer
+        ;;
+esac
