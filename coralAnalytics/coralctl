@@ -183,9 +183,20 @@ compose() {
         "$@"
 }
 
+ensure_data_access() {
+    local data_dir="$ANALYTICS_DIR/data"
+    mkdir -p "$data_dir" || true
+    if [[ ! -w "$data_dir" || ! -x "$data_dir" ]]; then
+        command -v sudo >/dev/null 2>&1 || fail "No write access to $data_dir; fix its ownership with sudo chown -R $(id -u):$(id -g) '$data_dir'"
+        sudo chown -R "$(id -u):$(id -g)" "$data_dir" || \
+            fail "Could not take ownership of $data_dir"
+    fi
+    [[ -w "$data_dir" && -x "$data_dir" ]] || fail "No write access to $data_dir after ownership repair"
+}
+
 acquire_data_lock() {
     command -v flock >/dev/null 2>&1 || fail "Install util-linux (flock)"
-    mkdir -p "$ANALYTICS_DIR/data"
+    ensure_data_access
     exec 7>"$ANALYTICS_DIR/data/.coralctl-data.lock"
     flock -n 7 || fail "Another Coral report, backup, restore, or sync task is already running"
 }
@@ -409,6 +420,7 @@ start_services() {
         command -v openssl >/dev/null 2>&1 || fail "Install openssl to generate a temporary SQL Server password"
     fi
     ensure_remote
+    ensure_data_access
     mkdir -p "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
     chmod 700 "$ANALYTICS_DIR/data" "$REPORT_DIR" "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
     compose config -q
