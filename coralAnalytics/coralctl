@@ -423,6 +423,7 @@ start_services() {
     ensure_data_access
     mkdir -p "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
     chmod 700 "$ANALYTICS_DIR/data" "$REPORT_DIR" "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
+    step "Validating Docker Compose configuration"
     compose config -q
 
     if [[ "$ACTION" == rebuild ]]; then

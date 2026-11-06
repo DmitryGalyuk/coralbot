@@ -3,11 +3,11 @@ services:
     container_name: coral-analytics-db
     image: postgres:16-alpine
     restart: unless-stopped
-      labels:
-        homepage.group: Coral Analytics
-        homepage.name: PostgreSQL
-        homepage.icon: /icons/postgres.png
-        homepage.href: http://${HOST_NAME}:${PORT_POSTGRES:-5432}
+    labels:
+      homepage.group: Coral Analytics
+      homepage.name: PostgreSQL
+      homepage.icon: /icons/postgres.png
+      homepage.href: http://${HOST_NAME}:${PORT_POSTGRES:-5432}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-coral}
       POSTGRES_USER: ${POSTGRES_USER:-coral}
