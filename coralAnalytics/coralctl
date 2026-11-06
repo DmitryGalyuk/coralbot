@@ -194,8 +194,10 @@ ensure_remote() {
     command -v rclone >/dev/null 2>&1 || fail "Install rclone and configure a Google Drive remote first"
     [[ "$RCLONE_REMOTE" == *:* ]] || fail "Set RCLONE_REMOTE, for example gdrive:coral-analytics"
     local remote_name="${RCLONE_REMOTE%%:*}:"
-    rclone listremotes | grep -Fxq "$remote_name" || \
-        fail "rclone remote '$remote_name' is not configured for this Linux user"
+    local configured_remotes
+    configured_remotes="$(rclone listremotes)"
+    printf '%s\n' "$configured_remotes" | grep -Fxq "$remote_name" || \
+        fail "rclone remote '$remote_name' is not configured. Available remotes: ${configured_remotes//$'\n'/, }. Update RCLONE_REMOTE in .env"
     rclone mkdir "$REMOTE_BASE/reports"
     rclone mkdir "$REMOTE_BASE/backups/postgres"
 }

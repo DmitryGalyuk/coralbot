@@ -43,7 +43,7 @@ coralAnalytics/coralctl reports --pending-only
 
 ## Домашний Linux-сервер
 
-Установите `rclone` (на Debian/Ubuntu: `sudo apt install rclone`). Выполните `rclone config` под тем же Linux-пользователем, который запускает Coral, и создайте Google Drive remote с именем `gdrive`. В `coralAnalytics/.env` задайте `RCLONE_REMOTE=gdrive:coral-analytics`. OAuth-конфигурация `rclone` остаётся в домашнем каталоге пользователя, а не в Git.
+Установите `rclone` (на Debian/Ubuntu: `sudo apt install rclone`). Выполните `rclone config` под тем же Linux-пользователем, который запускает Coral, и создайте Google Drive remote. Например, если remote называется `coral-analytics`, задайте `RCLONE_REMOTE=coral-analytics:coralbot` в `coralAnalytics/.env`; часть после двоеточия — папка в Drive. OAuth-конфигурация `rclone` остаётся в домашнем каталоге пользователя, а не в Git.
 
 ```sh
 git checkout <нужная-ветка>
