@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-coral}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
-      - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"
+      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db/01-create-superset-db.sql:/docker-entrypoint-initdb.d/01-create-superset-db.sql:ro
