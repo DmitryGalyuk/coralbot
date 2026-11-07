@@ -99,7 +99,12 @@ services:
       homepage.group: Coral Analytics
       homepage.name: Superset
       homepage.icon: /icons/superset.jpg
-      homepage.href: http://${HOST_NAME}:${PORT_SUPERSET:-8088}
+      homepage.href: http://coral.${HOST_NAME}
+
+      traefik.enable: true
+      traefik.docker.network: web_proxy
+      traefik.http.routers.coral.rule: Host(`coral.linbox.lan`)
+      traefik.http.services.coral.loadbalancer.server.port: 8088
     image: coral-analytics-superset:4.1.1
     build:
       context: .
@@ -126,6 +131,9 @@ services:
       POSTGRES_PORT: 5432
     volumes:
       - ./superset_config.py:/app/pythonpath/superset_config.py:ro
+
+    networks:
+      - web_proxy
     command:
       - /bin/sh
       - -c
@@ -146,3 +154,9 @@ services:
 
 volumes:
   postgres_data:
+
+
+
+networks:
+  web_proxy:
+    external: true
