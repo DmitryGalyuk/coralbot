@@ -14,13 +14,13 @@
         {
             "ssh": "Disabled",
             "previewLimit": 50,
-            "server": "localhost",
+            "server": "linbox.lan",
             "port": 5432,
             "driver": "PostgreSQL",
             "name": "coralAnalytics",
             "database": "coral",
             "username": "coral",
-            "password": "replace-with-a-long-local-password"
+            "password": "corAL!9455w0RD"
         }
     ]
 }

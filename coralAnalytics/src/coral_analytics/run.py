@@ -61,21 +61,44 @@ def archive_report(source: Path, processed_dir: Path) -> Path:
     return destination
 
 
-def import_report(engine, report_path: Path, report_date: date, processed_dir: Path) -> int:
+def import_report(engine, report_path: Path, report_date: date) -> int:
     report_contents = report_path.read_bytes()
     logger.info("Initializing PostgreSQL schema and title lookup")
     create_schema(engine)
     logger.info("Writing report rows from %s", report_path.name)
     row_count = process_report_bytes(engine, report_contents, report_path.name, report_date)
-    archive_path = archive_report(report_path, processed_dir)
-    logger.info(
-        "Imported %d rows from %s for %s; archived as %s",
-        row_count,
-        report_path.name,
-        report_date,
-        archive_path,
-    )
     return row_count
+
+
+def refresh_stats_materialized_view(engine) -> bool:
+    with engine.begin() as connection:
+        exists = connection.exec_driver_sql(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pg_matviews "
+            "WHERE schemaname = 'public' AND matviewname = 'coral_stats_mv'"
+            ")"
+        ).scalar_one()
+        if not exists:
+            logger.warning("public.coral_stats_mv does not exist; skipping refresh")
+            return False
+        logger.info("Refreshing materialized view public.coral_stats_mv")
+        connection.exec_driver_sql("REFRESH MATERIALIZED VIEW public.coral_stats_mv")
+    logger.info("Refreshed public.coral_stats_mv")
+    return True
+
+
+def archive_imported_reports(
+    reports: list[tuple[Path, date, int]], processed_dir: Path
+) -> None:
+    for report_path, report_date, row_count in reports:
+        archive_path = archive_report(report_path, processed_dir)
+        logger.info(
+            "Imported %d rows from %s for %s; archived as %s",
+            row_count,
+            report_path.name,
+            report_date,
+            archive_path,
+        )
 
 
 def main() -> None:
@@ -123,11 +146,16 @@ def main() -> None:
                 for path in incoming_dir.iterdir()
                 if path.is_file() and path.suffix.lower() == ".xlsx"
             )
+            imported_reports = []
             if pending_reports:
                 logger.info("Processing %d pending report(s) from %s", len(pending_reports), incoming_dir)
             for report_path in pending_reports:
                 report_date = parse_report_date(report_path.name, report_date_override)
-                import_report(engine, report_path, report_date, processed_dir)
+                row_count = import_report(engine, report_path, report_date)
+                imported_reports.append((report_path, report_date, row_count))
+            if imported_reports:
+                refresh_stats_materialized_view(engine)
+                archive_imported_reports(imported_reports, processed_dir)
 
         if args.pending_only:
             if not pending_reports:
@@ -137,7 +165,9 @@ def main() -> None:
         if args.file:
             report_path = Path(args.file).expanduser().resolve(strict=True)
             report_date = parse_report_date(report_path.name, report_date_override)
-            import_report(engine, report_path, report_date, processed_dir)
+            row_count = import_report(engine, report_path, report_date)
+            refresh_stats_materialized_view(engine)
+            archive_imported_reports([(report_path, report_date, row_count)], processed_dir)
             return
 
         report_date = parse_report_date(report_date_override or date.today().isoformat(), None)
@@ -155,7 +185,9 @@ def main() -> None:
         temp_path = report_path.with_name(f".{report_path.name}.part")
         temp_path.write_bytes(report_contents)
         temp_path.replace(report_path)
-        import_report(engine, report_path, report_date, processed_dir)
+        row_count = import_report(engine, report_path, report_date)
+        refresh_stats_materialized_view(engine)
+        archive_imported_reports([(report_path, report_date, row_count)], processed_dir)
     finally:
         engine.dispose()
 
