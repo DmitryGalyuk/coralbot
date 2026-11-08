@@ -5,10 +5,9 @@ umask 077
 ANALYTICS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$ANALYTICS_DIR/.env"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-COMMAND="setup"
+COMMAND=""
 ACTION="up"
 SCHEDULE_OVERRIDE=""
-BACPAC=""
 RESTORE_FILE=""
 PENDING_ONLY=0
 SQL_CONTAINER=""
@@ -21,12 +20,23 @@ usage() {
 Usage: coralctl [COMMAND] [OPTIONS]
 
 Commands:
-  setup              Start services and install report/backup timers (default)
+    setup              Start services and install report/backup timers
   restart            Restart PostgreSQL and Superset
   rebuild            Rebuild images, then start services
+    build-importer     Rebuild only the report importer image
   reports            Download/process a report, archive it, and upload reports
+    download-report    Download a Coral report into the incoming queue
+    process-reports    Import queued reports and refresh the materialized view
+    refresh-view       Recalculate public.coral_stats_mv
   backup             Create a local PostgreSQL dump and upload backups
-  restore FILE       Restore a PostgreSQL custom-format dump after confirmation
+    backup-db          Create and upload a PostgreSQL dump
+    sync-reports       Upload local reports to Google Drive
+    sync-db-backups    Upload local PostgreSQL backups to Google Drive
+    restore-db FILE    Restore a PostgreSQL custom-format dump after confirmation
+    restore FILE       Alias for restore-db
+    restore-bacpac FILE Restore a SQL Server BACPAC into PostgreSQL
+    export-superset     Export datasets, charts, dashboards and database configs to Git files
+    import-superset     Import the latest Superset export from Git files
   sync               Upload local reports and database backups to Google Drive
   status             Show service and timer status
 
@@ -34,11 +44,10 @@ Options:
   --restart          Restart services during setup
   --rebuild          Rebuild images without Docker build cache
   --schedule HH:MM   Set the daily report timer (default from .env, then 02:00)
-  --bacpac FILE      Explicitly restore a SQL Server BACPAC during setup
   --pending-only     Process incoming reports without downloading a new one
   --help             Show this help
 
-PostgreSQL is restored only when --bacpac or the restore command is explicit.
+No command runs automatically; PostgreSQL is restored only by an explicit restore command.
 EOF
 }
 
@@ -76,15 +85,25 @@ read_env_value() {
     printf '%s' "$value"
 }
 
-if (($#)) && [[ "$1" != -* ]]; then
+if (($# == 0)); then
+    usage
+    exit 0
+fi
+
+if [[ "$1" == --help || "$1" == -h ]]; then
+    usage
+    exit 0
+elif [[ "$1" != -* ]]; then
     case "$1" in
         setup|start) COMMAND=setup ;;
         restart) COMMAND=setup; ACTION=restart ;;
         rebuild) COMMAND=setup; ACTION=rebuild ;;
-        reports|backup|restore|sync|status) COMMAND="$1" ;;
+        reports|download-report|process-reports|refresh-view|build-importer|backup|backup-db|sync-reports|sync-db-backups|restore|restore-db|restore-bacpac|export-superset|import-superset|sync|status) COMMAND="$1" ;;
         *) fail "Unknown command: $1" ;;
     esac
     shift
+else
+    fail "Specify a command before options; use --help to list commands"
 fi
 
 while (($#)); do
@@ -92,11 +111,6 @@ while (($#)); do
         --schedule)
             (($# >= 2)) || fail "--schedule needs HH:MM"
             SCHEDULE_OVERRIDE="$2"
-            shift 2
-            ;;
-        --bacpac)
-            (($# >= 2)) || fail "--bacpac needs a file path"
-            BACPAC="$2"
             shift 2
             ;;
         --restart)
@@ -119,7 +133,7 @@ while (($#)); do
             exit 0
             ;;
         *)
-            if [[ "$COMMAND" == restore && -z "$RESTORE_FILE" ]]; then
+            if [[ ("$COMMAND" == restore || "$COMMAND" == restore-db || "$COMMAND" == restore-bacpac) && -z "$RESTORE_FILE" ]]; then
                 RESTORE_FILE="$1"
                 shift
             else
@@ -410,15 +424,45 @@ EOF
     systemctl --user is-active --quiet coral-backup.timer || fail "Monthly backup timer is not active"
 }
 
+restore_bacpac() {
+    local bacpac="$1" network sql_alias sql_password postgres_url
+    network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$DB_CONTAINER")"
+    [[ -n "$network" ]] || fail "Could not determine the Compose network"
+    SQL_CONTAINER="coral-bacpac-sql-$$"
+    sql_alias="coral-bacpac-$$"
+    sql_password="CoralTmp_$(openssl rand -hex 16)!A1"
+    trap cleanup EXIT
+    docker run -d --platform linux/amd64 --name "$SQL_CONTAINER" \
+        --network "$network" --network-alias "$sql_alias" \
+        -e ACCEPT_EULA=Y -e MSSQL_PID=Developer \
+        -e "MSSQL_SA_PASSWORD=$sql_password" \
+        mcr.microsoft.com/mssql/server:2022-latest >/dev/null
+    local ready=0
+    for _ in $(seq 1 90); do
+        if docker logs "$SQL_CONTAINER" 2>&1 | grep -q 'SQL Server is now ready for client connections'; then
+            ready=1
+            break
+        fi
+        [[ "$(docker inspect --format '{{.State.Running}}' "$SQL_CONTAINER")" == true ]] || fail "Temporary SQL Server exited"
+        sleep 2
+    done
+    ((ready)) || fail "Temporary SQL Server did not become ready in time"
+    docker exec -i -e "SA_PASSWORD=$sql_password" "$SQL_CONTAINER" sh -c \
+        '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -b -i /dev/stdin' <<'SQL'
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'contained database authentication', 1;
+RECONFIGURE;
+SQL
+    postgres_url="$(POSTGRES_USER="$POSTGRES_USER" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" POSTGRES_DB="$POSTGRES_DB" POSTGRES_LOCAL_PORT="$POSTGRES_LOCAL_PORT" python3 -c 'import os; from urllib.parse import quote; print("postgresql://{}:{}@localhost:{}/{}".format(quote(os.environ["POSTGRES_USER"], safe=""), quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_LOCAL_PORT"], quote(os.environ["POSTGRES_DB"], safe="")))')"
+    SQLSERVER_URL="mssql://sa:${sql_password}@${sql_alias}:1433/master" \
+    POSTGRES_URL="$postgres_url" RESTORE_DOCKER_NETWORK="$network" \
+    PGLOADER_POSTGRES_HOST=db \
+        python3 "$ANALYTICS_DIR/restore_bacpac.py" "$bacpac" --confirm-database "$POSTGRES_DB"
+}
+
 start_services() {
-    local network
     [[ "$(uname -s)" == Linux ]] || fail "Run coralctl setup on Linux"
-    if [[ -n "$BACPAC" && "$(uname -m)" != x86_64 ]]; then
-        fail "The temporary SQL Server BACPAC importer requires Linux x86_64"
-    fi
-    if [[ -n "$BACPAC" ]]; then
-        command -v openssl >/dev/null 2>&1 || fail "Install openssl to generate a temporary SQL Server password"
-    fi
     ensure_remote
     ensure_data_access
     mkdir -p "$INCOMING_DIR" "$PROCESSED_DIR" "$BACKUP_DIR"
@@ -438,44 +482,6 @@ start_services() {
 
     step "Starting PostgreSQL and waiting for health check"
     ensure_database
-    if [[ -n "$BACPAC" ]]; then
-        network="$(docker inspect --format '{{range $name, $value := .NetworkSettings.Networks}}{{$name}}{{end}}' "$DB_CONTAINER")"
-        [[ -n "$network" ]] || fail "Could not determine the Compose network"
-        SQL_CONTAINER="coral-bacpac-sql-$$"
-        local sql_alias="coral-bacpac-$$" sql_password
-        sql_password="CoralTmp_$(openssl rand -hex 16)!A1"
-        trap cleanup EXIT
-        docker run -d --platform linux/amd64 --name "$SQL_CONTAINER" \
-            --network "$network" --network-alias "$sql_alias" \
-            -e ACCEPT_EULA=Y -e MSSQL_PID=Developer \
-            -e "MSSQL_SA_PASSWORD=$sql_password" \
-            mcr.microsoft.com/mssql/server:2022-latest >/dev/null
-        local ready=0
-        for _ in $(seq 1 90); do
-            if docker logs "$SQL_CONTAINER" 2>&1 | grep -q 'SQL Server is now ready for client connections'; then
-                ready=1
-                break
-            fi
-            [[ "$(docker inspect --format '{{.State.Running}}' "$SQL_CONTAINER")" == true ]] || fail "Temporary SQL Server exited"
-            sleep 2
-        done
-        ((ready)) || fail "Temporary SQL Server did not become ready in time"
-        docker exec -i -e "SA_PASSWORD=$sql_password" "$SQL_CONTAINER" sh -c \
-            '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -b -i /dev/stdin' <<'SQL'
-EXEC sp_configure 'show advanced options', 1;
-RECONFIGURE;
-EXEC sp_configure 'contained database authentication', 1;
-RECONFIGURE;
-SQL
-        local postgres_url
-        postgres_url="$(POSTGRES_USER="$POSTGRES_USER" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" POSTGRES_DB="$POSTGRES_DB" POSTGRES_LOCAL_PORT="$POSTGRES_LOCAL_PORT" python3 -c 'import os; from urllib.parse import quote; print("postgresql://{}:{}@localhost:{}/{}".format(quote(os.environ["POSTGRES_USER"], safe=""), quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_LOCAL_PORT"], quote(os.environ["POSTGRES_DB"], safe="")))')"
-        acquire_data_lock
-        SQLSERVER_URL="mssql://sa:${sql_password}@${sql_alias}:1433/master" \
-        POSTGRES_URL="$postgres_url" RESTORE_DOCKER_NETWORK="$network" \
-        PGLOADER_POSTGRES_HOST=db \
-            python3 "$ANALYTICS_DIR/restore_bacpac.py" "$BACPAC" --confirm-database "$POSTGRES_DB"
-        release_data_lock
-    fi
 
     if [[ "$ACTION" == restart ]]; then
         step "Restarting PostgreSQL and Superset"
@@ -486,10 +492,6 @@ SQL
     compose --profile bi up -d --wait superset
     step "Installing and verifying report/backup timers"
     install_timers
-    if [[ "$ACTION" == up ]]; then
-        step "Running the first report import"
-        run_reports
-    fi
     compose --profile bi ps db superset
     systemctl --user list-timers --all coral-reports.timer coral-backup.timer
 }
@@ -508,9 +510,6 @@ run_reports() {
 
 case "$COMMAND" in
     setup)
-        [[ -n "$BACPAC" ]] && BACPAC="$(realpath -e -- "$BACPAC")"
-        [[ -z "$BACPAC" || "${BACPAC,,}" == *.bacpac ]] || fail "Input must be a .bacpac file"
-        [[ -z "$BACPAC" || "$ACTION" != restart ]] || fail "--bacpac cannot be combined with --restart"
         for key in CORAL_LOGIN CORAL_PASSWORD SUPERSET_SECRET_KEY SUPERSET_ADMIN_PASSWORD; do
             value="$(read_env_value "$key")"
             [[ -n "$value" && "$value" != replace-me && "$value" != replace-with-* ]] || fail "Set $key in .env"
@@ -528,15 +527,74 @@ case "$COMMAND" in
         command -v docker >/dev/null 2>&1 || fail "Install Docker first"
         run_reports
         ;;
-    backup)
+    build-importer)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        step "Building the Superset base image needed by the importer"
+        compose --profile bi build superset
+        step "Rebuilding the report importer image"
+        compose --profile jobs build importer
+        ;;
+    download-report)
+        [[ -n "$(read_env_value CORAL_LOGIN)" && -n "$(read_env_value CORAL_PASSWORD)" ]] || fail "Set CORAL_LOGIN and CORAL_PASSWORD in .env"
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        mkdir -p "$INCOMING_DIR"
+        acquire_data_lock
+        compose --profile jobs run --rm --no-deps importer python -m coral_analytics.run --download-only
+        ;;
+    process-reports)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        acquire_data_lock
+        compose --profile jobs run --rm importer python -m coral_analytics.run --pending-only
+        ;;
+    refresh-view)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        acquire_data_lock
+        compose --profile jobs run --rm importer python -m coral_analytics.run --refresh-view
+        ;;
+    backup|backup-db)
         command -v docker >/dev/null 2>&1 || fail "Install Docker first"
         acquire_data_lock
         create_backup
         ;;
-    restore)
+    sync-reports)
+        command -v rclone >/dev/null 2>&1 || fail "Install rclone first"
+        acquire_data_lock
+        sync_reports
+        ;;
+    sync-db-backups)
+        command -v rclone >/dev/null 2>&1 || fail "Install rclone first"
+        acquire_data_lock
+        sync_backups
+        ;;
+    restore|restore-db)
+        [[ -n "$RESTORE_FILE" ]] || fail "Usage: coralctl restore-db FILE.dump"
         command -v docker >/dev/null 2>&1 || fail "Install Docker first"
         acquire_data_lock
         restore_postgres_backup
+        ;;
+    restore-bacpac)
+        [[ -n "$RESTORE_FILE" ]] || fail "Usage: coralctl restore-bacpac FILE.bacpac"
+        RESTORE_FILE="$(realpath -e -- "$RESTORE_FILE")"
+        [[ "${RESTORE_FILE,,}" == *.bacpac ]] || fail "Input must be a .bacpac file"
+        [[ "$(uname -s)" == Linux ]] || fail "Run BACPAC restore on Linux"
+        [[ "$(uname -m)" == x86_64 ]] || fail "The temporary SQL Server BACPAC importer requires Linux x86_64"
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        command -v python3 >/dev/null 2>&1 || fail "Install python3 first"
+        command -v openssl >/dev/null 2>&1 || fail "Install openssl to generate a temporary SQL Server password"
+        [[ -t 0 ]] || fail "Run BACPAC restore interactively so the database replacement can be confirmed"
+        acquire_data_lock
+        ensure_database
+        restore_bacpac "$RESTORE_FILE"
+        release_data_lock
+        ;;
+    export-superset|import-superset)
+        command -v docker >/dev/null 2>&1 || fail "Install Docker first"
+        if [[ "$COMMAND" == export-superset ]]; then
+            compose --profile bi exec -T -u "${HOST_UID}:${HOST_GID}" superset \
+                python /app/import_superset_exports.py --export
+        else
+            compose --profile bi exec -T superset python /app/import_superset_exports.py
+        fi
         ;;
     sync)
         command -v rclone >/dev/null 2>&1 || fail "Install rclone first"

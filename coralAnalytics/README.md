@@ -25,7 +25,7 @@
 
 Для полного сброса Coral-таблиц во время отладки: `docker compose --profile maintenance run --rm reset-db`. Команда удаляет данные `dailystats` и пересоздаёт справочник и view; она не удаляет Superset metadata или PostgreSQL volume целиком.
 
-Управление домашним сервером выполняется только через `coralctl`: `coralctl restart` перезапускает контейнеры, `coralctl rebuild` пересобирает образы, а `coralctl setup` включает оба таймера. Ни одна из этих команд не сбрасывает БД; восстановление возможно только явной командой `coralctl restore FILE` или `coralctl setup --bacpac FILE`.
+Управление домашним сервером выполняется через `coralctl`. Запуск без команды показывает справку и ничего не меняет. `setup` запускает сервисы и включает таймеры, но не скачивает и не импортирует отчёт. Для отдельных действий используйте `build-importer`, `download-report`, `process-reports`, `refresh-view`, `backup-db`, `sync-reports` и `sync-db-backups`. Восстановление возможно только явными командами `restore FILE` или `restore-bacpac FILE`.
 
 Схема создаёт таблицы `dailystats` и `titles`, наполняет `titles` справочником рангов и создаёт `public.coralview`. View вычисляет календарные поля, `IsDirector`, `IsLatestDate`, `TitleName`/`TitleRank`; `Path` строится как цепочка ID от корня структуры в рамках даты snapshot. Имя отчёта сохраняется в `file_name`, дата отчёта берётся из `REPORT_DATE`, если задана, иначе из текущей локальной даты. Период скачивания можно переопределить через `REPORT_PERIOD`.
 
@@ -61,20 +61,32 @@ coralAnalytics/coralctl setup --schedule 02:00
 coralAnalytics/coralctl setup --schedule 02:00
 coralAnalytics/coralctl restart
 coralAnalytics/coralctl rebuild
-coralAnalytics/coralctl reports --pending-only
-coralAnalytics/coralctl backup
-coralAnalytics/coralctl restore coral_20261106T030000Z.dump
+coralAnalytics/coralctl build-importer
+coralAnalytics/coralctl download-report
+coralAnalytics/coralctl process-reports
+coralAnalytics/coralctl refresh-view
+coralAnalytics/coralctl backup-db
+coralAnalytics/coralctl sync-reports
+coralAnalytics/coralctl sync-db-backups
+coralAnalytics/coralctl restore-db coral_20261106T030000Z.dump
+coralAnalytics/coralctl restore-bacpac azure_db_backup/export.bacpac
+coralAnalytics/coralctl export-superset
+coralAnalytics/coralctl import-superset
 coralAnalytics/coralctl sync
 coralAnalytics/coralctl status
 ```
 
-`setup` сразу импортирует текущий отчёт, затем ставит два timer: ежедневную загрузку отчётов и PostgreSQL backup в день `BACKUP_DAY` (по умолчанию 15-е число, время `BACKUP_TIME`, по умолчанию 03:00). Оба запускают те же команды, что и вручную. Если `.env` отсутствует, `coralctl` создаёт его из `.env.example` и останавливается для заполнения.
+`download-report` только скачивает Excel в `incoming/`; уже существующий файл за ту же дату не перезаписывается. `process-reports` обрабатывает всю очередь и один раз обновляет `public.coral_stats_mv` после успешного импорта. `refresh-view` пересчитывает только эту materialized view. `build-importer` пересобирает образы, необходимые для запуска импортёра. `backup-db` создаёт и проверяет локальный дамп, затем копирует его в Google Drive. Команды `sync-reports` и `sync-db-backups` отдельно повторяют загрузку соответствующих локальных архивов в Drive.
 
-Во время setup `coralctl` печатает текущий этап (`Checking Google Drive folders`, build, database, Superset, timers, first report). Операции rclone имеют сетевые таймауты; если команда остановилась, последняя строка показывает, какой шаг проверить.
+`setup` ставит два timer: ежедневный составной цикл загрузки/импорта отчётов и PostgreSQL backup в день `BACKUP_DAY` (по умолчанию 15-е число, время `BACKUP_TIME`, по умолчанию 03:00). Таймеры продолжают запускать объединённые операции; вручную доступны отдельные команды выше. Если `.env` отсутствует, `coralctl` создаёт его из `.env.example` и останавливается для заполнения.
 
-`backup` создаёт локальный `pg_dump` custom archive, проверяет его и отправляет в Drive. По умолчанию локально сохраняются последние три успешно загруженных дампа (`BACKUP_KEEP_LOCAL=3`); Google Drive-копии не удаляются. `restore FILE` перед восстановлением делает текущую резервную копию, восстанавливает во временную БД и просит подтвердить переключение.
+Во время setup `coralctl` печатает текущий этап (build, database, Superset, timers). Операции rclone имеют сетевые таймауты; если команда остановилась, последняя строка показывает, какой шаг проверить.
 
-Для BACPAC используйте `coralAnalytics/coralctl setup --bacpac FILE`; без этого параметра база не восстанавливается. Скрипт проверяет Linux x86_64, Docker Compose, rclone remote и user-level systemd. Если необходимо, он включает lingering через `sudo loginctl enable-linger`, чтобы timers работали после выхода пользователя.
+`backup-db` создаёт локальный `pg_dump` custom archive, проверяет его и отправляет в Drive. По умолчанию локально сохраняются последние три успешно загруженных дампа (`BACKUP_KEEP_LOCAL=3`); Google Drive-копии не удаляются. `restore-db FILE` перед восстановлением делает текущую резервную копию, восстанавливает во временную БД и просит подтвердить переключение. `restore FILE` остаётся alias.
+
+`export-superset` и `import-superset` требуют запущенный Superset. Экспорт создаёт новые датированные YAML-каталоги в `coralAnalytics/superset/`; закоммитьте их в Git. Импорт применяет последние dataset и dashboard exports. Superset также импортирует эти файлы при каждом старте.
+
+Для редкого восстановления BACPAC, экспортированного из Azure SQL и уже доступного локальным файлом, используйте `coralAnalytics/coralctl restore-bacpac FILE`. Команда не включает таймеры и не запускает импорт отчёта; она требует Linux x86_64 и интерактивно подтверждает замену базы. Автоматического скачивания BACPAC из Azure в CLI пока нет.
 
 Статус расписаний: `systemctl --user list-timers coral-reports.timer coral-backup.timer`. Логи: `journalctl --user -u coral-reports.service` и `journalctl --user -u coral-backup.service`. Отчёты и дампы хранятся локально под `coralAnalytics/data/` и копируются в remote, не синхронизируются с удалением. Superset доступен по настроенному `SUPERSET_LOCAL_PORT`; для внешнего доступа используйте VPN/firewall.
 

@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -5,7 +6,8 @@ import re
 import shutil
 import subprocess
 import tempfile
-from pathlib import Path
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
 from urllib.parse import quote_plus
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -143,9 +145,74 @@ def run_import(command: str, archive: Path) -> None:
     )
 
 
+def unpack_export(archive: Path, destination: Path) -> None:
+    with ZipFile(archive) as bundle:
+        files = [entry for entry in bundle.infolist() if not entry.is_dir()]
+        first_parts = {PurePosixPath(entry.filename).parts[0] for entry in files}
+        strip_root = len(first_parts) == 1 and not first_parts.issubset(
+            {"databases", "datasets", "charts", "dashboards", "metadata.yaml", "tags.yaml"}
+        )
+        for entry in files:
+            parts = PurePosixPath(entry.filename).parts
+            if not parts or PurePosixPath(entry.filename).is_absolute() or ".." in parts:
+                raise ValueError(f"Unsafe path in Superset export: {entry.filename}")
+            relative = parts[1:] if strip_root else parts
+            if not relative:
+                continue
+            output = destination.joinpath(*relative)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(bundle.read(entry))
+
+
+def sanitize_export(destination: Path) -> None:
+    import yaml
+
+    for database_file in (destination / "databases").glob("*.yaml"):
+        database = yaml.safe_load(database_file.read_text(encoding="utf-8"))
+        database["sqlalchemy_uri"] = "postgresql+psycopg2://<configured-at-import>"
+        database.pop("password", None)
+        database_file.write_text(
+            yaml.safe_dump(database, sort_keys=False, allow_unicode=True), encoding="utf-8"
+        )
+
+
+def export_superset_exports() -> None:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    dataset_dir = EXPORT_ROOT / f"dataset_export_{timestamp}"
+    dashboard_dir = EXPORT_ROOT / f"dashboard_export_{timestamp}"
+    with tempfile.TemporaryDirectory(prefix="coral-superset-export-") as temp_dir:
+        temp_root = Path(temp_dir)
+        dataset_archive = temp_root / "datasets.zip"
+        dashboard_archive = temp_root / "dashboards.zip"
+        subprocess.run(
+            ["superset", "export-datasources", "-f", str(dataset_archive)], check=True
+        )
+        subprocess.run(
+            ["superset", "export-dashboards", "-f", str(dashboard_archive)], check=True
+        )
+        dataset_dir.mkdir(parents=True)
+        dashboard_dir.mkdir(parents=True)
+        unpack_export(dataset_archive, dataset_dir)
+        unpack_export(dashboard_archive, dashboard_dir)
+    sanitize_export(dataset_dir)
+    sanitize_export(dashboard_dir)
+    logging.info("Superset exports written to %s and %s", dataset_dir, dashboard_dir)
+
+
 def main() -> None:
-    dataset_exports = sorted(EXPORT_ROOT.glob("dataset_export_*"))
-    dashboard_exports = sorted(EXPORT_ROOT.glob("dashboard_export_*"))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--export", action="store_true", help="Export current Superset assets")
+    args = parser.parse_args()
+    if args.export:
+        export_superset_exports()
+        return
+
+    dataset_exports = sorted(
+        path for path in EXPORT_ROOT.glob("dataset_export_*") if path.is_dir()
+    )
+    dashboard_exports = sorted(
+        path for path in EXPORT_ROOT.glob("dashboard_export_*") if path.is_dir()
+    )
     if not dataset_exports or not dashboard_exports:
         logging.warning(
             "Superset dataset/dashboard exports are missing in %s; "
@@ -163,12 +230,12 @@ def main() -> None:
         zip_export(dataset_dir, dataset_zip)
         run_import("import-datasources", dataset_zip)
 
-        for source in dashboard_exports:
-            dashboard_dir = temp_root / source.name
-            prepare_export(source, dashboard_dir)
-            dashboard_zip = temp_root / f"{source.name}.zip"
-            zip_export(dashboard_dir, dashboard_zip)
-            run_import("import-dashboards", dashboard_zip)
+        dashboard_source = dashboard_exports[-1]
+        dashboard_dir = temp_root / dashboard_source.name
+        prepare_export(dashboard_source, dashboard_dir)
+        dashboard_zip = temp_root / f"{dashboard_source.name}.zip"
+        zip_export(dashboard_dir, dashboard_zip)
+        run_import("import-dashboards", dashboard_zip)
 
 
 if __name__ == "__main__":

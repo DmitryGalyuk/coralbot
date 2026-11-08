@@ -44,8 +44,8 @@ services:
     networks:
       - coralnet  
     environment:
-      CORAL_LOGIN: ${CORAL_LOGIN:?Set CORAL_LOGIN in .env}
-      CORAL_PASSWORD: ${CORAL_PASSWORD:?Set CORAL_PASSWORD in .env}
+      CORAL_LOGIN: ${CORAL_LOGIN:-}
+      CORAL_PASSWORD: ${CORAL_PASSWORD:-}
       CORAL_LANG: ${CORAL_LANG:-gb}
       REPORT_TYPE: ${REPORT_TYPE:-CDXPRep}
       REPORT_DATE: ${REPORT_DATE:-}
@@ -139,6 +139,8 @@ services:
       POSTGRES_PORT: 5432
     volumes:
       - ./superset_config.py:/app/pythonpath/superset_config.py:ro
+      - ./import_superset_exports.py:/app/import_superset_exports.py:ro
+      - ./superset:/app/superset
 
     networks:
       - web_proxy

@@ -110,9 +110,24 @@ def main() -> None:
         action="store_true",
         help="Import incoming reports without downloading a new report",
     )
+    parser.add_argument(
+        "--download-only",
+        action="store_true",
+        help="Download a report into the incoming directory without importing it",
+    )
+    parser.add_argument(
+        "--refresh-view",
+        action="store_true",
+        help="Refresh public.coral_stats_mv without importing reports",
+    )
     parser.add_argument("--init-schema", action="store_true", help="Create the local database schema only")
     parser.add_argument("--reset-schema", action="store_true", help="Drop and recreate Coral tables and view")
     args = parser.parse_args()
+
+    if args.download_only and (args.file or args.pending_only or args.init_schema or args.reset_schema or args.refresh_view):
+        parser.error("--download-only cannot be combined with other actions")
+    if args.refresh_view and (args.file or args.pending_only or args.init_schema or args.reset_schema):
+        parser.error("--refresh-view cannot be combined with other actions")
 
     if args.init_schema or args.reset_schema:
         engine = create_local_engine()
@@ -134,6 +149,37 @@ def main() -> None:
 
     if args.pending_only and args.file:
         parser.error("--pending-only cannot be combined with --file")
+
+    if args.download_only:
+        if not os.environ.get("CORAL_LOGIN") or not os.environ.get("CORAL_PASSWORD"):
+            parser.error("CORAL_LOGIN and CORAL_PASSWORD are required for --download-only")
+        incoming_dir.mkdir(parents=True, exist_ok=True)
+        report_date = parse_report_date(report_date_override or date.today().isoformat(), None)
+        report_period = os.environ.get("REPORT_PERIOD") or report_date.strftime("%Y%m")
+        report_path = incoming_dir / f"{report_date.isoformat()}.xlsx"
+        if report_path.exists():
+            raise FileExistsError(f"Report already exists in incoming queue: {report_path}")
+        logger.info("Downloading Coral report for period %s", report_period)
+        report_contents = download_file(
+            os.environ["CORAL_LOGIN"],
+            os.environ["CORAL_PASSWORD"],
+            os.environ.get("CORAL_LANG", "gb"),
+            os.environ.get("REPORT_TYPE", "CDXPRep"),
+            report_period,
+        )
+        temp_path = report_path.with_name(f".{report_path.name}.part")
+        temp_path.write_bytes(report_contents)
+        temp_path.replace(report_path)
+        logger.info("Downloaded %d bytes to %s", len(report_contents), report_path)
+        return
+
+    if args.refresh_view:
+        engine = create_local_engine()
+        try:
+            refresh_stats_materialized_view(engine)
+        finally:
+            engine.dispose()
+        return
 
     incoming_dir.mkdir(parents=True, exist_ok=True)
     processed_dir.mkdir(parents=True, exist_ok=True)
@@ -173,6 +219,8 @@ def main() -> None:
         report_date = parse_report_date(report_date_override or date.today().isoformat(), None)
         report_path = incoming_dir / f"{report_date.isoformat()}.xlsx"
         report_period = os.environ.get("REPORT_PERIOD") or report_date.strftime("%Y%m")
+        if not os.environ.get("CORAL_LOGIN") or not os.environ.get("CORAL_PASSWORD"):
+            parser.error("CORAL_LOGIN and CORAL_PASSWORD are required to download a report")
         logger.info("Downloading Coral report for period %s", report_period)
         report_contents = download_file(
             os.environ["CORAL_LOGIN"],
